@@ -26,6 +26,7 @@
         <script type="text/javascript" src="js/jquery/jquery.scrollTo-min.js"></script>
         <script type="text/javascript" src="js/k2.js"></script>
         <script type="text/javascript" src="js/messagebar.js"></script>
+        <script type="text/javascript" src="js/settingsmenus.js"></script>
 
         <script type="text/javascript">
                         
@@ -99,14 +100,6 @@
                 } else {
                     return true;
                 }
-            }
-            
-            function logoutAction() {
-       
-                clearMessageBar();
-       
-                document.location = 'logout.jsp';
-        
             }
                                     
             $(window).unload(function() {
@@ -186,7 +179,13 @@
             </div>
         </div>
         <div id="menuLayer">
-            <%@include file="WEB-INF/jspf/settingsMenus.jspf" %>
+            <div id="settingsMenus">
+                <input type="checkbox" id="userMenuButton"><label for="userMenuButton"><%= userSession.get("fullname")%></label>
+            </div>
+            <ul id="userMenu" class="ui-menu ui-widget ui-widget-content ui-corner-all" role="menu" style="display: none;">
+                <li class="ui-menu-item ui-corner-all" role="menuitem"><a href="#" onclick="showUserSettingsAction()" class="ui-corner-all" tabindex="-1">Namn och e-postadress</a></li>
+                <li class="ui-menu-item ui-corner-all" role="menuitem"><a href="#" onclick="logoutAction()" class="ui-corner-all" tabindex="-1">Logga ut</a></li>
+            </ul>
         </div>
         <div id="orderListLayer" class="ui-widget" ondragenter="return false" ondragover="return false" ondrop="return false">
             <div id="orderList" class="ui-widget">
