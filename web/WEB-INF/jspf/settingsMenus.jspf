@@ -1,0 +1,87 @@
+<!-- settingsMenus start -->
+
+<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<script type="text/javascript">
+    
+    var documentClickFunction;
+    
+    function showUserSettingsAction() {
+        
+        $('#userSettingsDialog').dialog('open');
+        hideUserMenu();
+        
+    }
+    
+    function showUserMenu() {
+                
+        $('#userMenu').fadeIn(effectDurationDenominator, function() {
+
+            $(document).bind('click', function(event) {
+                if ($(event.target) != $('#userMenu')) {
+                    hideUserMenu();
+                }
+            });
+                          
+        });
+        
+    }
+    
+    function hideUserMenu() {
+    
+        $('#userMenu').fadeOut(effectDurationDenominator, function() {
+            
+            $(document).unbind('click');
+
+            $('#userMenuButton').attr('checked', false);
+            $('#userMenuButton').button('refresh');
+                                    
+            $('#userMenu').fadeOut(effectDurationDenominator);
+            
+        });
+    
+    }
+    
+    $(document).ready(function() {
+    
+        $('#userFunctionsButton').button({
+            icons: {
+                primary: "ui-icon-gear"}
+        });
+                
+        $('#userMenuButton').button({
+            icons: {
+                primary: "ui-icon-gear",
+                secondary: "ui-icon-triangle-1-s"
+            }
+        });
+
+        $('#userMenuButton').change(function() {
+                    
+            if ($('#userMenuButton').is(':checked')) {
+                        
+                showUserMenu();
+                                            
+            } else {
+                        
+                hideUserMenu();
+                        
+            }
+                    
+        });
+        
+        //$('#userMenu').css('min-width', ($('label[for=userMenuButton]').width() - 4) + 'px');
+
+    });
+    
+</script>
+
+
+<div id="settingsMenus">
+    <input type="checkbox" id="userMenuButton"><label for="userMenuButton"><%= userSession.get("fullname")%></label>
+</div>
+<ul id="userMenu" class="ui-menu ui-widget ui-widget-content ui-corner-all" role="menu" style="display: none;">
+    <li class="ui-menu-item ui-corner-all" role="menuitem"><a href="#" onclick="showUserSettingsAction()" class="ui-corner-all" tabindex="-1">Namn och e-postadress</a></li>
+    <li class="ui-menu-item ui-corner-all" role="menuitem"><a href="#" onclick="logoutAction()" class="ui-corner-all" tabindex="-1">Logga ut</a></li>
+</ul>
+
+<!-- settingsMenus end -->
