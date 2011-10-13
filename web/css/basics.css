@@ -140,7 +140,7 @@ label {
 
 /* Lagerdefinitioner slutar */
 
-#orderListControls {
+#order-controls {
     z-index: 100;
     position: fixed;
     top:27px;
@@ -170,6 +170,12 @@ label {
     width: 140px;
     right: 4px;
     top: 20px;
+}
+
+#order-view-menu {
+    margin-left: 4px;
+    padding-left: 12px;
+    border-left: 1px solid #767476;
 }
 
 .order-list-entry {

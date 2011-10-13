@@ -102,6 +102,8 @@ function showOrderDetails(ordernumber) {
                 
                     orderdetails.remove();
                     $('.order-list-entry').removeClass('ui-state-active');
+                    
+                    $('#order-view-menu').fadeOut(effectDurationDenominator);
                 
                 });
             
@@ -112,6 +114,8 @@ function showOrderDetails(ordernumber) {
                 return false;
             
             });
+            
+            $('#order-view-menu').fadeIn(effectDurationDenominator);
         
             adjustViewPort();
         

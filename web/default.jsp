@@ -142,14 +142,18 @@
                     showUserSettingsDialog();
                     
                 }
-                                
+                
+                $("#orderview-info-button").button( { icons: {primary:'ui-icon-document'} } );
+                $("#orderview-planning-button").button( { icons: {primary:'ui-icon-calendar'} } );
+                $("#orderview-webproof-button").button( { icons: {primary:'ui-icon-image'} } );
+                                                
             });
                       
         </script>
         <title>K2 - <%= userSession.get("fullname")%></title>
     </head>
     <body onresize="adjustViewPort()">
-        <div id="orderListControls" class="ui-widget">
+        <div id="order-controls" class="ui-widget">
             <div class="buttonset">
                 <input class="sorting-choice" type="radio" id="ordernumber-sort-button" name="sort" value="ordernumber" checked="checked"/><label for="ordernumber-sort-button">Sortera efter ordernummer</label>
                 <input class="sorting-choice" type="radio" id="ordername-sort-button" name="sort" value="ordername" /><label for="ordername-sort-button">Sortera efter ordernamn</label>
@@ -158,6 +162,11 @@
             <div class="buttonset">
                 <input class="sorting-choice" type="radio" id="descending-order-button" name="order" value="desc"/><label for="descending-order-button">Fallande</label>
                 <input class="sorting-choice" type="radio" id="ascending-order-button" name="order" value="asc" checked="checked"/><label for="ascending-order-button">Stigande</label>
+            </div>
+            <div class="buttonset" id="order-view-menu" style="display: none">
+                <input type="radio" name="orderview" id="orderview-info-button" checked="checked"/><label for="orderview-info-button">Information</label>
+                <input type="radio" name="orderview" id="orderview-planning-button"/><label for="orderview-planning-button">Planering</label>
+                <input type="radio" name="orderview" id="orderview-webproof-button"/><label for="orderview-webproof-button">Webbkorrektur</label>
             </div>
         </div>
         <div id="menuLayer">
