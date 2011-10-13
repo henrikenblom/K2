@@ -1,11 +1,15 @@
-<%-- 
-    Document   : default
-    Created on : 2011-jul-14, 14:04:19
-    Author     : henrik
---%>
-
 <!DOCTYPE html>
-<%@include file="WEB-INF/jspf/sessionConstants.jspf" %>
+
+<%@page import="com.imprima.kesession.UserSession"%>
+<%@page import="com.imprima.kesession.UserSessionController"%>
+
+<%
+
+    UserSession userSession = UserSessionController.getInstance().getUserSession(request.getSession().getId());
+
+    String path = request.getScheme() + "://" + request.getServerName() + ":" + Integer.toString(request.getServerPort()) + request.getContextPath() + "/";
+
+%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 
