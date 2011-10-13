@@ -15,6 +15,12 @@
 
 <html>
     <head>
+        
+        <script type="text/javascript">            
+            var fullname = '<%= userSession.get("fullname")%>';
+            var username = '<%= userSession.getUsername()%>';
+        </script>
+        
         <link rel="stylesheet" type="text/css" href="css/imprima-theme/jquery-ui-1.8.16.custom.css">
         <link rel="stylesheet" type="text/css" href="css/basics.css">
         <script type="text/javascript" src="js/org/cometd.js"></script>
@@ -33,7 +39,10 @@
         <script type="text/javascript" src="js/settingsmenus.js"></script>
 
         <script type="text/javascript">
-                        
+            
+            var fullname = '<%= userSession.get("fullname")%>';
+            var username = '<%= userSession.getUsername()%>';
+
             function handleDragEnter(event) {
 
                 $('#' + event.srcElement.id).addClass("drag-enter");
@@ -137,7 +146,7 @@
             });
                       
         </script>
-        <title></title>
+        <title>K2 - <%= userSession.get("fullname")%></title>
     </head>
     <body onresize="adjustViewPort()">
         <div id="orderListControls" class="ui-widget">
