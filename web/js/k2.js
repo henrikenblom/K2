@@ -279,3 +279,101 @@ function isScrolledIntoView(elem) {
     return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom));
     
 }
+
+function addAtom(elementname, filename) {
+    
+    $.ajax({
+        async: false,
+        url: 'atoms/' + filename,
+        context: document.body,
+        success: function(data){
+            $('#' + elementname).append(data);
+        }
+    });
+    
+}
+
+function showUserSettingsDialog() {
+    
+    if (!$('#userSettingsDialog').length) {
+        
+        addAtom('dialogLayer', 'usersettingsdialog.html');
+        
+    }
+                
+    if ($.cookie("name") != null || $.cookie("email") != null) {
+                    
+        $('#userSettingsDialogNoCookie').hide();
+        $('#userSettingsDialogChangeData').show();
+
+        name = $.cookie("name");
+        email = $.cookie("email");
+                    
+        $('#name').val(name);
+        $('#email').val(email);
+
+    }
+                
+    $('#userSettingsDialog').dialog({
+        closeOnEscape: false,
+        open: function(e, ui) {
+                        
+            $(".ui-dialog-titlebar-close").hide();
+                        
+            $(this).keypress(function(e) {
+                if (e.keyCode == 13) {
+                    $('.ui-dialog-buttonpane button:last').trigger('click');
+                }
+            });
+                        
+        },
+        close: function(e, ui) {
+                        
+            $('#userSettingsDialogNoCookie').hide();
+            $('#userSettingsDialogChangeData').show();
+                        
+        },
+        modal: true,
+        resizable: false,
+        show: "fade",
+        hide: "fade",
+        autoOpen: false,
+        width: 460,
+        buttons: {
+            "Ok": function() {
+                            
+                var bValid = true;
+                $('#name').removeClass("ui-state-error");
+                $('#email').removeClass("ui-state-error");
+
+                bValid = bValid && checkLength( $('#name'), "Namnet", 2, 80 );
+                bValid = bValid && checkLength( $('#email'), "E-postadressen", 6, 80 );
+
+                // From jquery.validate.js (by joern), contributed by Scott Gonzalez: http://projects.scottsplayground.com/email_address_validation/
+                bValid = bValid && checkRegexp(  $('#email'), /^((([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+(\.([a-z]|\d|[!#\$%&'\*\+\-\/=\?\^_`{\|}~]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])+)*)|((\x22)((((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(([\x01-\x08\x0b\x0c\x0e-\x1f\x7f]|\x21|[\x23-\x5b]|[\x5d-\x7e]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(\\([\x01-\x09\x0b\x0c\x0d-\x7f]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))))*(((\x20|\x09)*(\x0d\x0a))?(\x20|\x09)+)?(\x22)))@((([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|\d|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.)+(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])|(([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])([a-z]|\d|-|\.|_|~|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])*([a-z]|[\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])))\.?$/i, "E-postadressen är ogiltig." );
+
+                if ( bValid ) {
+                                
+                    $.cookie("name", $('#name').val(), {
+                        path: '/', 
+                        expires: 3650
+                    });
+                    $.cookie("email", $('#email').val(), {
+                        path: '/', 
+                        expires: 3650
+                    });
+
+                    name = $('#name').val();
+                    email = $('#email').val();
+
+                    $( this ).dialog( "close" );
+                                                    
+                }
+            }
+        }
+    });
+    
+    $('#userSettingsDialog').dialog('open');
+    $('#name').focus();
+    
+}

@@ -7,7 +7,7 @@
     
     function showUserSettingsAction() {
         
-        $('#userSettingsDialog').dialog('open');
+        showUserSettingsDialog();
         hideUserMenu();
         
     }
