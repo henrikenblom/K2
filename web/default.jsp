@@ -25,6 +25,7 @@
         <script type="text/javascript" src="js/jquery/jquery.tinysort.min.js"></script>
         <script type="text/javascript" src="js/jquery/jquery.scrollTo-min.js"></script>
         <script type="text/javascript" src="js/k2.js"></script>
+        <script type="text/javascript" src="js/messagebar.js"></script>
 
         <script type="text/javascript">
                         
@@ -173,8 +174,6 @@
         <title></title>
     </head>
     <body onresize="adjustViewPort()">
-
-
         <div id="orderListControls" class="ui-widget">
             <div class="buttonset">
                 <input class="sorting-choice" type="radio" id="ordernumber-sort-button" name="sort" value="ordernumber" checked="checked"/><label for="ordernumber-sort-button">Sortera efter ordernummer</label>
@@ -195,9 +194,11 @@
         </div>
         <div id="contentLayer" ondragenter="return false" ondragover="return false" ondrop="return false">
         </div>
-        <%@include file="WEB-INF/jspf/messageBar.jspf"%>
+        <div id="noticeHoverDetectionLayer" onmouseover="handleMouseOverNoticeHoverDetectionLayer()" ondragenter="return false" ondragover="return false" ondrop="return false">
+        </div>
+        <div id="noticeLayer" class="ui-widget" onmouseover="handleMouseOverNoticeHoverDetectionLayer()" onmouseout="handleMouseOutNoticeHoverDetectionLayer()" ondragenter="return false" ondragover="return false" ondrop="return false" style="display: none">
+        </div>
         <div id="dialogLayer" ondragenter="return false" ondragover="return false" ondrop="return false">
-
         </div>
     </body>
 </html>
