@@ -175,7 +175,7 @@
     </head>
     <body onresize="adjustViewPort()">
         <div id="order-controls" class="ui-widget">
-            <input type="checkbox" id="sort-order-button"><label for="sort-order-button">sdfsdf</label>
+            <input type="checkbox" id="sort-order-button"><label for="sort-order-button"></label>
             <ul id="sorting-menu" class="ui-menu ui-widget ui-widget-content ui-corner-all" role="menu" style="display:none">
                 <li class="ui-menu-item ui-corner-all" role="menuitem">
                     <input class="sorting-choice ui-helper-hidden-accessible" type="radio" id="ordernumber-sort-button" name="sort" value="ordernumber" checked="checked"/>
@@ -221,26 +221,26 @@
                 <input type="radio" name="orderview" id="orderview-webproof-button"/><label for="orderview-webproof-button">Webbkorrektur</label>
             </div>
         </div>
-        <div id="menuLayer">
-            <div id="settingsMenus">
-                <input type="checkbox" id="userMenuButton"><label for="userMenuButton"><%= userSession.get("fullname")%></label>
+        <div id="menu-layer">
+            <div id="settings-menus">
+                <input type="checkbox" id="user-menu-button"><label for="user-menu-button"><%= userSession.get("fullname")%></label>
             </div>
-            <ul id="userMenu" class="ui-menu ui-widget ui-widget-content ui-corner-all" role="menu" style="display: none;">
+            <ul id="user-menu" class="ui-menu ui-widget ui-widget-content ui-corner-all" role="menu" style="display: none;">
                 <li class="ui-menu-item ui-corner-all" role="menuitem"><a href="#" onclick="showUserSettingsAction()" class="ui-corner-all" tabindex="-1">Namn och e-postadress</a></li>
                 <li class="ui-menu-item ui-corner-all" role="menuitem"><a href="#" onclick="logoutAction()" class="ui-corner-all" tabindex="-1">Logga ut</a></li>
             </ul>
         </div>
-        <div id="orderListLayer" class="ui-widget" ondragenter="return false" ondragover="return false" ondrop="return false">
-            <div id="orderList" class="ui-widget">
+        <div id="order-list-layer" class="ui-widget" ondragenter="return false" ondragover="return false" ondrop="return false">
+            <div id="order-list" class="ui-widget">
             </div>
         </div>
-        <div id="contentLayer" ondragenter="return false" ondragover="return false" ondrop="return false">
+        <div id="content-layer" ondragenter="return false" ondragover="return false" ondrop="return false">
         </div>
-        <div id="noticeHoverDetectionLayer" onmouseover="handleMouseOverNoticeHoverDetectionLayer()" ondragenter="return false" ondragover="return false" ondrop="return false">
+        <div id="notice-hover-detection-layer" onmouseover="handleMouseOverNoticeHoverDetectionLayer()" ondragenter="return false" ondragover="return false" ondrop="return false">
         </div>
-        <div id="noticeLayer" class="ui-widget" onmouseover="handleMouseOverNoticeHoverDetectionLayer()" onmouseout="handleMouseOutNoticeHoverDetectionLayer()" ondragenter="return false" ondragover="return false" ondrop="return false" style="display: none">
+        <div id="notice-layer" class="ui-widget" onmouseover="handleMouseOverNoticeHoverDetectionLayer()" onmouseout="handleMouseOutNoticeHoverDetectionLayer()" ondragenter="return false" ondragover="return false" ondrop="return false" style="display: none">
         </div>
-        <div id="dialogLayer" ondragenter="return false" ondragover="return false" ondrop="return false">
+        <div id="dialog-layer" ondragenter="return false" ondragover="return false" ondrop="return false">
         </div>
     </body>
 </html>

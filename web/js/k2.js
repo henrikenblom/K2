@@ -58,7 +58,7 @@ function hideSortingMenu() {
 
 function doOrderListSort() {
 
-    $('div#orderList>.order-list-entry').tsort("div." + $('input[name$="sort"]:checked').val(),
+    $('div#order-list>.order-list-entry').tsort("div." + $('input[name$="sort"]:checked').val(),
     {
         order:$('input[name$="order"]:checked').val()
     }
@@ -77,14 +77,14 @@ function doOrderListSort() {
 
 function adjustViewPort() {
 
-    $('#orderListLayer').height($(window).height() - $('#menyLayer').height() - $('#orderListControls').height() - 54); 
+    $('#order-list-layer').height($(window).height() - $('#menyLayer').height() - $('#order-listControls').height() - 54); 
 
-    $('#contentLayer, #order-view-menu').css('left', $('#orderListLayer').width());
+    $('#content-layer, #order-view-menu').css('left', $('#order-list-layer').width());
     $('#order-view-menu').css('top', '1px');
     
-    $('#contentLayer').width($(window).width() - $('#orderListLayer').width());
+    $('#content-layer').width($(window).width() - $('#order-list-layer').width());
 
-    $('.order-details-entry').height($('#contentLayer').height() - 136);
+    $('.order-details-entry').height($('#content-layer').height() - 136);
 
 }
 
@@ -100,7 +100,7 @@ function showOrderDetails(ordernumber) {
         
         if (!isScrolledIntoView($('#order-list-entry-' + ordernumber))) {
                         
-            $('#orderListLayer').scrollTo($('#order-list-entry-' + ordernumber), effectDurationDenominator);
+            $('#order-list-layer').scrollTo($('#order-list-entry-' + ordernumber), effectDurationDenominator);
         
         }
         
@@ -138,10 +138,10 @@ function showOrderDetails(ordernumber) {
             orderdetails.append(orderdetailsHeader)
             .append(updated);
         
-            $('#contentLayer').html(orderdetails);
-            $('#contentLayer').click(function() {
+            $('#content-layer').html(orderdetails);
+            $('#content-layer').click(function() {
             
-                $('#contentLayer').unbind('click');
+                $('#content-layer').unbind('click');
                 
                 closeOrderdetails(orderData.ordernumber);
             
@@ -294,7 +294,7 @@ function handleLevel9Message(bayeuxMessage) {
 
 function addOrder(orderData) {
 
-    $('#orderList').append(generateOrderListEntry(orderData));
+    $('#order-list').append(generateOrderListEntry(orderData));
         
     $('#order-list-entry-' + orderData.ordernumber).fadeIn(effectDurationDenominator * 2, function() {
         
@@ -406,7 +406,7 @@ function showUserSettingsDialog() {
     
     if (!$('#userSettingsDialog').length) {
         
-        addAtom('dialogLayer', 'usersettingsdialog.html');
+        addAtom('dialog-layer', 'usersettingsdialog.html');
         
     }
                 

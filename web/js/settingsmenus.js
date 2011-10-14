@@ -15,10 +15,10 @@ function logoutAction() {
 
 function showUserMenu() {
                 
-    $('#userMenu').fadeIn(effectDurationDenominator, function() {
+    $('#user-menu').fadeIn(effectDurationDenominator, function() {
 
         $(document).bind('click', function(event) {
-            if ($(event.target) != $('#userMenu')) {
+            if ($(event.target) != $('#user-menu')) {
                 hideUserMenu();
             }
         });
@@ -29,12 +29,12 @@ function showUserMenu() {
     
 function hideUserMenu() {
     
-    $('#userMenu').fadeOut(effectDurationDenominator, function() {
+    $('#user-menu').fadeOut(effectDurationDenominator, function() {
             
         $(document).unbind('click');
 
-        $('#userMenuButton').attr('checked', false);
-        $('#userMenuButton').button('refresh');
+        $('#user-menu-button').attr('checked', false);
+        $('#user-menu-button').button('refresh');
                                                 
     });
     
@@ -48,16 +48,16 @@ $(document).ready(function() {
         }
     });
                 
-    $('#userMenuButton').button({
+    $('#user-menu-button').button({
         icons: {
             primary: "ui-icon-gear",
             secondary: "ui-icon-triangle-1-s"
         }
     });
 
-    $('#userMenuButton').change(function() {
+    $('#user-menu-button').change(function() {
                     
-        if ($('#userMenuButton').is(':checked')) {
+        if ($('#user-menu-button').is(':checked')) {
                         
             showUserMenu();
                                             

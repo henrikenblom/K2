@@ -3,7 +3,7 @@ function initMessageBar() {
         
     if ($.cookie("messagebar") != null) {
             
-        $('#noticeLayer').html($.cookie("messagebar"));
+        $('#notice-layer').html($.cookie("messagebar"));
             
     }
         
@@ -11,7 +11,7 @@ function initMessageBar() {
     
 function clearMessageBar() {
         
-    //$('#noticeLayer').html("");
+    //$('#notice-layer').html("");
         
     $.cookie("messagebar", null, {
         path: '/', 
@@ -24,9 +24,9 @@ function showTextMessage(message, timestring) {
 
     if (message.length > 0) {
 
-        var completeText = '<b>' + timestring + '</b>&nbsp;-&nbsp;' + message + '&nbsp;&nbsp;&nbsp;' + $('#noticeLayer').html().substr(0,3000);
+        var completeText = '<b>' + timestring + '</b>&nbsp;-&nbsp;' + message + '&nbsp;&nbsp;&nbsp;' + $('#notice-layer').html().substr(0,3000);
 
-        $('#noticeLayer').html(completeText);
+        $('#notice-layer').html(completeText);
         
         $.cookie("messagebar", completeText, {
             path: '/', 
@@ -56,7 +56,7 @@ function animateShowNoticeLayer() {
                 
     clearInterval(noticeLayerDisplayTimer);
                                                     
-    $('#noticeLayer').slideDown(effectDurationDenominator * 2, function() {
+    $('#notice-layer').slideDown(effectDurationDenominator * 2, function() {
                     
         if (!noticeLayerMouseOver) {
                         
@@ -70,7 +70,7 @@ function animateShowNoticeLayer() {
             
 function animateHideNoticeLayer() {
                 
-    $('#noticeLayer').slideUp(effectDurationDenominator * 2);
+    $('#notice-layer').slideUp(effectDurationDenominator * 2);
                 
     clearInterval(noticeLayerDisplayTimer);
                 
