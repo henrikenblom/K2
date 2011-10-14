@@ -26,30 +26,7 @@ label {
 input, div, label {
     display: inline;
 }
-/*
-
-h2 {
-    display: inline;
-    font-size: 20px;
-    font-weight: bold;
-}
-
-li {
-    font-weight: bold;
-    border: 1px !important;
-}
-
-
-button {
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-label {
-    font-weight: bold;
-}
-
- Lagerdefinitioner börjar */
+/* Lagerdefinitioner börjar */
 
 #menuLayer {
     z-index: 100;
