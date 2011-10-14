@@ -195,7 +195,7 @@
                     <input class="sorting-choice ui-helper-hidden-accessible" type="radio" id="timestamp-sort-button" name="sort" value="timestamp"/>
                     <label for="timestamp-sort-button" class="ui-button ui-widget ui-button-text-icon-primary" aria-disabled="false">
                         <span id="timestamp-sort-button-icon" class="ui-button-icon-primary ui-icon-check"></span>
-                        <span class="ui-button-text">Tidpunkt</span>
+                        <span class="ui-button-text">Senast uppdaterad</span>
                     </label>
                 </li>
                 <li class="ui-menu-item menu-divider" role="menuitem">

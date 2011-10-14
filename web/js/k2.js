@@ -7,7 +7,7 @@ var noticeDuration = 5000;
 var noticeLayerMouseOver = false;
 var name,email;
 var cometd = $.cometd;
-var sortingcaption = {"ordernumber":"ordernummer","ordername":"ordernamn", "timestamp":"'senast uppdaterad'"};
+var sortingcaption = {"ordernumber":"ordernummer","ordername":"ordernamn", "timestamp":"tidpunkt"};
 
 function handleKeyEvent(event) {
 
@@ -68,15 +68,16 @@ function doOrderListSort() {
     hideSortingMenu();
     
     $('#sort-order-button').button('option', 'label', 'Sortera efter ' + sortingcaption[$('input[name$="sort"]:checked').val()]);
-    //$('label[for$="sort-order-button"]').html('Sortera efter ' + sortingcaption[$('input[name$="sort"]:checked').val()]);
                     
 }
 
 function adjustViewPort() {
 
-    $('#orderListLayer').height($(window).height() - $('#menyLayer').height() - $('#orderListControls').height() - 18); 
+    $('#orderListLayer').height($(window).height() - $('#menyLayer').height() - $('#orderListControls').height() - 54); 
 
-    $('#contentLayer').css('left', $('#orderListLayer').width());
+    $('#contentLayer, #order-view-menu').css('left', $('#orderListLayer').width());
+    $('#order-view-menu').css('top', '1px');
+    
     $('#contentLayer').width($(window).width() - $('#orderListLayer').width());
 
     $('.order-details-entry').height($('#contentLayer').height() - 136);
@@ -136,6 +137,8 @@ function showOrderDetails(ordernumber) {
             $('#contentLayer').html(orderdetails);
             $('#contentLayer').click(function() {
             
+                $('#contentLayer').unbind('click');
+                
                 orderdetails.fadeOut(effectDurationDenominator, function() {
                 
                     orderdetails.remove();
@@ -182,8 +185,19 @@ function generateOrderListEntry(orderData) {
     ordernumber.addClass('ordernumber');
                 
     var ordername = $('<div>');
-    ordername.html(orderData.name);
+    
+    var ordernameString = orderData.name;
+    
+    if (ordernameString.length > 35) {
+        
+        ordernameString = ordernameString.substring(0,33) + "\u2026";
+        
+    }
+    
+    ordername.html(ordernameString);
     ordername.addClass('ordername');
+    
+    frameDiv.attr('title', orderData.name);
     
     var updated = $('<div>');
     updated.html(orderData.updated);

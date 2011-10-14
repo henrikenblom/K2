@@ -364,7 +364,7 @@
 	margin: 0;
 	display:block;
 	float: left;
-        opacity: 0.9;
+        opacity: 0.95;
 }
 .ui-menu .ui-menu {
 	margin-top: -3px;
@@ -424,10 +424,10 @@ input.ui-button { padding: 4px 10px; }
 
 /*button sets*/
 .ui-buttonset { margin-right: 7px; }
-.ui-buttonset .ui-button { margin-left: 0; margin-right: -.3em; }
+.ui-buttonset .ui-button { margin-left: 0; margin-right: -4px; }
 
 /* workarounds */
-button.ui-button::-moz-focus-inner { border: 0; padding: 0; } /* reset extra padding in Firefox */
+button.ui-button:-moz-focus-inner { border: 0; padding: 0; } /* reset extra padding in Firefox */
 /*
  * jQuery UI Dialog 1.8.16
  *
