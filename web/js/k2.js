@@ -7,6 +7,7 @@ var noticeDuration = 5000;
 var noticeLayerMouseOver = false;
 var name,email;
 var cometd = $.cometd;
+var sortingcaption = {"ordernumber":"ordernummer","ordername":"ordernamn", "timestamp":"'senast uppdaterad'"};
 
 function handleKeyEvent(event) {
 
@@ -24,13 +25,50 @@ function handleKeyEvent(event) {
                     
 }
 
+function showSortingMenu() {
+    
+    $('#sorting-menu').fadeIn(effectDurationDenominator, function() {
+
+        $(document).bind('click', function(event) {
+            if ($(event.target) != $('#sorting-menu')) {
+                hideSortingMenu();
+            }
+        });
+                          
+    });
+    
+}
+
+function hideSortingMenu() {
+    
+    $('#sorting-menu').fadeOut(effectDurationDenominator, function() {
+        
+        $(document).unbind('click');
+
+        $('#sort-order-button').attr('checked', false);
+        $('#sort-order-button').button('refresh');
+        
+    });
+    
+}
+
 function doOrderListSort() {
-                
+
     $('div#orderList>.order-list-entry').tsort("div." + $('input[name$="sort"]:checked').val(),
     {
         order:$('input[name$="order"]:checked').val()
     }
     );
+                
+    $('#order-controls ul li label span').removeClass('ui-icon'); 
+               
+    $('#' + $('input[name$="sort"]:checked').val() + '-sort-button-icon').addClass('ui-icon');
+    $('#' + $('input[name$="order"]:checked').val() + '-order-button-icon').addClass('ui-icon');
+
+    hideSortingMenu();
+    
+    $('#sort-order-button').button('option', 'label', 'Sortera efter ' + sortingcaption[$('input[name$="sort"]:checked').val()]);
+    //$('label[for$="sort-order-button"]').html('Sortera efter ' + sortingcaption[$('input[name$="sort"]:checked').val()]);
                     
 }
 
@@ -216,6 +254,7 @@ function handleLevel9Message(bayeuxMessage) {
     } else if (message.type == 'addordermessage') {
         
         addOrder(message.body);
+        doOrderListSort();
         
     }
     
@@ -224,9 +263,7 @@ function handleLevel9Message(bayeuxMessage) {
 function addOrder(orderData) {
 
     $('#orderList').append(generateOrderListEntry(orderData));
-    
-    doOrderListSort();
-    
+        
     $('#order-list-entry-' + orderData.ordernumber).fadeIn(effectDurationDenominator * 2, function() {
         
         adjustViewPort();

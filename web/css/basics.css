@@ -26,6 +26,11 @@ label {
 input, div, label {
     display: inline;
 }
+
+li label {
+    font-weight: bold;
+}
+
 /* Lagerdefinitioner börjar */
 
 #menuLayer {
@@ -149,10 +154,23 @@ input, div, label {
     top: 20px;
 }
 
+#sorting-menu {
+    z-index: 100;
+    position: fixed;
+    left: 4px;
+    top: 45px;
+}
+
 #order-view-menu {
     margin-left: 4px;
     padding-left: 12px;
     border-left: 1px solid #767476;
+}
+
+.sorting-choice {
+    margin: 6px 4px;
+    background: url(../images/radio.gif) no-repeat;
+    background-color: red;
 }
 
 .order-list-entry {
@@ -163,6 +181,10 @@ input, div, label {
     white-space: nowrap;
     font-weight: bold;
     display: block;
+}
+
+.menu-divider {
+    border-top: 1px dotted #999;
 }
 
 .order-details-entry {

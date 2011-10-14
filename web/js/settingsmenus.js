@@ -35,9 +35,7 @@ function hideUserMenu() {
 
         $('#userMenuButton').attr('checked', false);
         $('#userMenuButton').button('refresh');
-                                    
-        $('#userMenu').fadeOut(effectDurationDenominator);
-            
+                                                
     });
     
 }
