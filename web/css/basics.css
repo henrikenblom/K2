@@ -204,6 +204,11 @@ label {
     white-space: nowrap;
 }
 
+.updated {
+    position: absolute;
+    right: 4px;
+}
+
 .order-details-entry label {
     display: block;
 }

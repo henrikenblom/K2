@@ -6,6 +6,7 @@ package com.imprima.util;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -98,21 +99,21 @@ public class DateUtility {
 
         String timeString = dayOfYearFormatter.get(locale).format(time);
         String year = "";
-        
+
         if (getAgeInDays(time) == 0) {
-         
+
             timeString = relativeTimeLabels.get(locale).get("today");
-            
+
         } else if (getAgeInDays(time) == 1) {
-            
+
             timeString = relativeTimeLabels.get(locale).get("yesterday");
-            
+
         }
-        
+
         if (!yearFormatter.get(locale).format(new Date()).equals(yearFormatter.get(locale).format(time))) {
-            
+
             year = " " + yearFormatter.get(locale).format(time);
-            
+
         }
 
         if (dateTimeFormatter.containsKey(locale)) {
@@ -121,18 +122,72 @@ public class DateUtility {
 
         }
 
-        return timeString;
+        return timeString.trim();
 
     }
 
     private long getAgeInDays(Date from) {
 
-        GregorianCalendar calendar = new GregorianCalendar();
-        calendar.setTime(from);
+        long age = 0l;
         
-        long diff = System.currentTimeMillis() - calendar.getTime().getTime();
+        GregorianCalendar startDate = new GregorianCalendar();
+        startDate.setTime(from);
+        
+        GregorianCalendar endDate = new GregorianCalendar();
+        endDate.setTime(new Date());
+        
+        if (System.currentTimeMillis() - startDate.getTime().getTime() > 0) {
+         
+            age = daysBetween(startDate, endDate);
+            
+        }
+        
+        return age;
 
-        return (diff / (1000 * 60 * 60 * 24));
+    }
+
+    public static long daysBetween(final Calendar startDate, final Calendar endDate) {
+        
+        Calendar sDate = (Calendar) startDate.clone();
+        long daysBetween = 0;
+
+        int y1 = sDate.get(Calendar.YEAR);
+        int y2 = endDate.get(Calendar.YEAR);
+        int m1 = sDate.get(Calendar.MONTH);
+        int m2 = endDate.get(Calendar.MONTH);
+
+        //**year optimization**
+        while (((y2 - y1) * 12 + (m2 - m1)) > 12) {
+
+            //move to Jan 01
+            if (sDate.get(Calendar.MONTH) == Calendar.JANUARY
+                    && sDate.get(Calendar.DAY_OF_MONTH) == sDate.getActualMinimum(Calendar.DAY_OF_MONTH)) {
+
+                daysBetween += sDate.getActualMaximum(Calendar.DAY_OF_YEAR);
+                sDate.add(Calendar.YEAR, 1);
+            } else {
+                int diff = 1 + sDate.getActualMaximum(Calendar.DAY_OF_YEAR) - sDate.get(Calendar.DAY_OF_YEAR);
+                sDate.add(Calendar.DAY_OF_YEAR, diff);
+                daysBetween += diff;
+            }
+            y1 = sDate.get(Calendar.YEAR);
+        }
+
+        //** optimize for month **
+        //while the difference is more than a month, add a month to start month
+        while ((m2 - m1) % 12 > 1) {
+            daysBetween += sDate.getActualMaximum(Calendar.DAY_OF_MONTH);
+            sDate.add(Calendar.MONTH, 1);
+            m1 = sDate.get(Calendar.MONTH);
+        }
+
+        // process remainder date
+        while (sDate.before(endDate)) {
+            sDate.add(Calendar.DAY_OF_MONTH, 1);
+            daysBetween++;
+        }
+
+        return daysBetween;
         
     }
     
