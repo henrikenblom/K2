@@ -7,7 +7,11 @@ var noticeDuration = 5000;
 var noticeLayerMouseOver = false;
 var name,email;
 var cometd = $.cometd;
-var sortingcaption = {"ordernumber":"ordernummer","ordername":"ordernamn", "timestamp":"tidpunkt"};
+var sortingcaption = {
+    "ordernumber":"ordernummer",
+    "ordername":"ordernamn", 
+    "timestamp":"tidpunkt"
+};
 
 function handleKeyEvent(event) {
 
@@ -139,14 +143,7 @@ function showOrderDetails(ordernumber) {
             
                 $('#contentLayer').unbind('click');
                 
-                orderdetails.fadeOut(effectDurationDenominator, function() {
-                
-                    orderdetails.remove();
-                    $('.order-list-entry').removeClass('ui-state-active');
-                    
-                    $('#order-view-menu').fadeOut(effectDurationDenominator);
-                
-                });
+                closeOrderdetails(orderData.ordernumber);
             
             });
         
@@ -166,6 +163,27 @@ function showOrderDetails(ordernumber) {
     
     }
         
+}
+
+function closeOrderdetails(ordernumber) {
+    
+    var selector = '.order-details-entry';
+    
+    if (ordernumber) {
+        
+        selector = '#order-details-entry-' + ordernumber;
+        
+    }
+    
+    $(selector).fadeOut(effectDurationDenominator, function() {
+                
+        $(selector).remove();
+        $('.order-list-entry').removeClass('ui-state-active');
+                    
+        $('#order-view-menu').fadeOut(effectDurationDenominator);
+                
+    });
+    
 }
 
 function generateOrderListEntry(orderData) {
@@ -208,7 +226,7 @@ function generateOrderListEntry(orderData) {
     
     var sales_fullname = $('<div>');
     sales_fullname.html(orderData.sales_fullname);
-    ordername.addClass('sales_fullname');
+    sales_fullname.addClass('sales_fullname');
     
     var projectmanager_fullname_label = $('<label>');
     projectmanager_fullname_label.html('Projektledare:');
@@ -287,7 +305,9 @@ function addOrder(orderData) {
 }
 
 function removeOrder(ordernumber) {
-        
+    
+    closeOrderdetails(ordernumber);
+    
     $('#order-list-entry-' + ordernumber).fadeOut(effectDurationDenominator, function() {
         
         $('#order-list-entry-' + ordernumber).remove();
@@ -300,23 +320,26 @@ function removeOrder(ordernumber) {
 function updateOrderdata(orderData) {
         
     $.each(orderData, function(key, value) {
-                
-        $('#order-list-entry-' + orderData.ordernumber + ' .order' + key).fadeOut(effectDurationDenominator, function() {
+
+        if (key != 'ordernumber') {
             
-            $('#order-list-entry-' + orderData.ordernumber + ' .order' + key).html(value);
-            $('#order-list-entry-' + orderData.ordernumber + ' .order' + key).addClass("ui-state-highlight");
-            $('#order-list-entry-' + orderData.ordernumber + ' .order' + key).fadeIn(effectDurationDenominator, function() {
+            $('#order-list-entry-' + orderData.ordernumber + ' .' + key).fadeOut(effectDurationDenominator, function() {
+            
+                $('#order-list-entry-' + orderData.ordernumber + ' .' + key).html(value);
+                $('#order-list-entry-' + orderData.ordernumber + ' .' + key).addClass("ui-state-highlight");
+                $('#order-list-entry-' + orderData.ordernumber + ' .' + key).fadeIn(effectDurationDenominator, function() {
                 
-                adjustViewPort();
+                    adjustViewPort();
                 
-                setTimeout(function() {
-                    $('#order-list-entry-' + orderData.ordernumber + ' .order' + key).removeClass( "ui-state-highlight", effectDurationDenominator * 6 );
-                }, effectDurationDenominator * 4);
+                    setTimeout(function() {
+                        $('#order-list-entry-' + orderData.ordernumber + ' .' + key).removeClass( "ui-state-highlight", effectDurationDenominator * 6 );
+                    }, effectDurationDenominator * 4);
                 
+                });
+            
             });
-            
-        });
         
+        }
       
     });
     

@@ -166,11 +166,6 @@ li label {
     top:1px;
 }
 
-.sorting-choice {
-    margin: 6px 4px;
-    background: url(../images/radio.gif) no-repeat;
-    background-color: red;
-}
 
 .order-list-entry {
     margin: 0;
@@ -205,6 +200,7 @@ li label {
 .updated {
     position: absolute;
     right: 4px;
+    color: #767476;
 }
 
 .order-details-entry label {
