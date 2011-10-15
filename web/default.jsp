@@ -15,7 +15,7 @@
 
 <html>
     <head>
-
+        <meta charset="utf-8">
         <script type="text/javascript">            
             var fullname = '<%= userSession.get("fullname")%>';
             var username = '<%= userSession.getUsername()%>';
@@ -34,6 +34,7 @@
         <script type="text/javascript" src="js/jquery/jquery.cometd-reload.js"></script>
         <script type="text/javascript" src="js/jquery/jquery.tinysort.min.js"></script>
         <script type="text/javascript" src="js/jquery/jquery.scrollTo-min.js"></script>
+        <script type="text/javascript" src="js/jquery/fileupload/jquery.fileupload.js"></script>
         <script type="text/javascript" src="js/k2.js"></script>
         <script type="text/javascript" src="js/messagebar.js"></script>
         <script type="text/javascript" src="js/settingsmenus.js"></script>
@@ -42,48 +43,7 @@
             
             var fullname = '<%= userSession.get("fullname")%>';
             var username = '<%= userSession.getUsername()%>';
-
-            function handleDragEnter(event) {
-
-                $('#' + event.srcElement.id).addClass("drag-enter");
-                
-                event.stopPropagation();
-                event.preventDefault();
-                
-                return false;
-            
-            }
-            
-            function handleDragLeave(event) {
-            
-                $('#' + event.srcElement.id).removeClass("drag-enter");
-                
-                event.stopPropagation();
-                event.preventDefault();
-                
-                return false;
-            
-            }
-            
-            function handleDrop(event) {
-                
-                var files = event.dataTransfer.files;
-                
-                $('#' + event.srcElement.id).removeClass("drag-enter");
-                
-                for (var i = 0, f; f = files[i]; i++) {
-                    
-                    alert(f.name);
-                    
-                }
-                
-                event.stopPropagation();
-                event.preventDefault();
-                
-                return true;
-                
-            }
-                                                            
+                                                                        
             $(window).unload(function() {
                 
                 cometd.reload();
@@ -234,6 +194,7 @@
             <div id="order-list" class="ui-widget">
             </div>
         </div>
+            			<div id="dropzone-info" style="width: 500px;" ></div>
         <div id="content-layer" ondragenter="return false" ondragover="return false" ondrop="return false">
         </div>
         <div id="notice-hover-detection-layer" onmouseover="handleMouseOverNoticeHoverDetectionLayer()" ondragenter="return false" ondragover="return false" ondrop="return false">

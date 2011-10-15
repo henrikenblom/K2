@@ -116,7 +116,7 @@ function showOrderDetails(ordernumber) {
             orderdetails.addClass('order-details-entry');
             orderdetails.addClass('ui-widget');
             orderdetails.attr('id', 'order-details-entry-' + orderData.ordernumber);
-        
+            
             var orderdetailsHeader = $('<div>').addClass('header');
         
             var ordernumber = $('<h1>');
@@ -137,8 +137,23 @@ function showOrderDetails(ordernumber) {
         
             orderdetails.append(orderdetailsHeader)
             .append(updated);
+                    
+            orderdetails.fileupload({
+                url: 'UploadServlet',
+                dropZone: orderdetails,
+                formData: [
+                {
+                    name: 'a',
+                    value: 1
+                },
+                {
+                    name: 'b',
+                    value: 2 
+                }
+                ]
+            });
         
-            $('#content-layer').html(orderdetails);
+            $('#content-layer').html(orderdetails);            
             $('#content-layer').click(function() {
             
                 $('#content-layer').unbind('click');
