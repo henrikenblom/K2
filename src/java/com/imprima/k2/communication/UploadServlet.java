@@ -6,7 +6,8 @@ package com.imprima.k2.communication;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Collection;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Map.Entry;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpServlet;
@@ -18,7 +19,7 @@ import javax.servlet.http.Part;
  *
  * @author henrik
  */
-@MultipartConfig(location="/tmp", fileSizeThreshold=1024*1024)
+@MultipartConfig(location = "/tmp", fileSizeThreshold = 1024 * 1024)
 public class UploadServlet extends HttpServlet {
 
     /** 
@@ -30,46 +31,68 @@ public class UploadServlet extends HttpServlet {
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
+        request.setCharacterEncoding("UTF8");
+
         PrintWriter writer = response.getWriter();
-        
+
         try {
-            
-           for (Part part : request.getParts()) {
-               
-               System.err.println(part.getContentType());
-               System.err.println(part.getSize());
-               System.err.println(getContentDispositionValue(part.getHeader("content-disposition"), "filename"));
-               
-           }
-            
-        } finally {            
+
+            for (Part part : request.getParts()) {
+
+                if (getContentDispositionValue(part.getHeader("content-disposition"), "filename") != null) {
+
+                    System.err.println(part.getContentType());
+                    System.err.println(part.getSize());
+                    System.err.println(getContentDispositionValue(part.getHeader("content-disposition"), "filename"));
+
+                } else {
+
+                    ParameterEntry entry = getParameter(part);
+                    
+                    System.err.println(entry.getKey() + ": " + entry.getValue());
+
+                }
+
+            }
+
+        } finally {
         }
     }
 
+    private ParameterEntry getParameter(Part part) throws IOException {
+
+        byte[] data = new byte[(int) part.getSize()];
+
+        part.getInputStream().read(data);
+        
+        return new ParameterEntry(getContentDispositionValue(part.getHeader("content-disposition"), "name"), new String(data, "UTF8"));
+
+    }
+
     private String getContentDispositionValue(String contentDispositionString, String key) {
-        
+
         String retval = null;
-        
+
         if (contentDispositionString.startsWith("form-data;")) {
-            
+
             for (String entry : contentDispositionString.split(";")) {
-                
+
                 if (entry.trim().startsWith(key)) {
-                    
+
                     retval = entry.split("=")[1].replace("\"", "");
                     break;
-                    
+
                 }
-                
+
             }
-            
+
         }
-        
+
         return retval;
-        
+
     }
-    
+
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /** 
      * Handles the HTTP <code>GET</code> method.

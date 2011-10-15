@@ -143,12 +143,12 @@ function showOrderDetails(ordernumber) {
                 dropZone: orderdetails,
                 formData: [
                 {
-                    name: 'a',
-                    value: 1
+                    name: 'ordernumber',
+                    value: orderData.ordernumber
                 },
                 {
-                    name: 'b',
-                    value: 2 
+                    name: 'test',
+                    value: 'åäö ÅÄÖ'
                 }
                 ]
             });
@@ -271,6 +271,17 @@ function generateOrderListEntry(orderData) {
     .append('<br>')
     .append(projectmanager_fullname_label)
     .append(projectmanager_fullname);
+
+    frameDiv.fileupload({
+                url: 'UploadServlet',
+                dropZone: frameDiv,
+                formData: [
+                {
+                    name: 'ordernumber',
+                    value: orderData.ordernumber
+                }
+                ]
+            });
 
     frameDiv.click(function() {
         
