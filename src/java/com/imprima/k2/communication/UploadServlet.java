@@ -29,14 +29,16 @@ import org.apache.commons.fileupload.util.Streams;
  */
 public class UploadServlet extends HttpServlet {
 
+    private static final int BUFFERSIZE = 8192;
+    
     private UserSessionController userSessionController = UserSessionController.getInstance();
     private ProductionDatastore productionDatastore = ProductionDatastore.getInstance();
-    private ServletFileUpload upload = new ServletFileUpload();
+    private ServletFileUpload servletUpload = new ServletFileUpload();
 
     @Override
     public void init() throws ServletException {
 
-        upload.setSizeMax(8589934592L);
+        servletUpload.setSizeMax(8589934592L);
         super.init();
 
     }
@@ -51,10 +53,8 @@ public class UploadServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        long start = System.currentTimeMillis();
-
         Integer ordernumber = null;
-        String filename = null;
+        String originalFilename = null;
         FileOutputStream fileOutputStream = null;
         File outputFile = null;
         byte[] buffer = null;
@@ -66,7 +66,7 @@ public class UploadServlet extends HttpServlet {
 
             try {
 
-                FileItemIterator iter = upload.getItemIterator(request);
+                FileItemIterator iter = servletUpload.getItemIterator(request);
 
                 while (iter.hasNext()) {
 
@@ -86,21 +86,23 @@ public class UploadServlet extends HttpServlet {
 
                         String[] path = item.getName().split("\\\\");
 
-                        filename = path[path.length - 1];
+                        originalFilename = path[path.length - 1];
+                        
+                        path = null;
 
-                        userSessionController.publishMessageToUsers(new UserMessage("'" + filename + "' laddas upp till order " + ordernumber + "."),
+                        userSessionController.publishMessageToUsers(new UserMessage("'" + originalFilename + "' laddas upp till order " + ordernumber + "."),
                                 productionDatastore.getUsernameSetByOrdernumer(ordernumber));
 
-                        outputFile = new File("/Users/henrik/Desktop/" + filename);
+                        outputFile = new File("/Users/henrik/Desktop/" + originalFilename);
                         fileOutputStream = new FileOutputStream(outputFile);
 
-                        buffer = new byte[8192];
+                        buffer = new byte[BUFFERSIZE];
                         int length;
                         while ((length = stream.read(buffer)) > 0) {
                             fileOutputStream.write(buffer, 0, length);
                         }
 
-                        userSessionController.publishMessageToUsers(new UserMessage("'" + filename + "' har laddats upp till order " + ordernumber + "."),
+                        userSessionController.publishMessageToUsers(new UserMessage("'" + originalFilename + "' har laddats upp till order " + ordernumber + "."),
                                 productionDatastore.getUsernameSetByOrdernumer(ordernumber));
 
                     }
@@ -111,6 +113,18 @@ public class UploadServlet extends HttpServlet {
                 Logger.getLogger(UploadServlet.class.getName()).log(Level.SEVERE, null, ex);
             } finally {
 
+                if (fileOutputStream != null) {
+                    
+                    try {
+                    fileOutputStream.close();
+                    } catch (Exception ex) {
+                        //no-op
+                    }
+                    
+                    fileOutputStream = null;
+                    
+                }
+                
                 if (fileOutputStream != null) {
                     
                     try {
