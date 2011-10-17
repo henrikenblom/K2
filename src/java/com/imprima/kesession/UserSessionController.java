@@ -3,11 +3,9 @@ package com.imprima.kesession;
 import com.imprima.k2.datastore.DBConnectionUtility;
 import com.imprima.level9.Message;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
-import javax.naming.NamingException;
+import java.util.Set;
 import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 
@@ -186,6 +184,16 @@ public class UserSessionController {
 
             }
 
+        }
+        
+    }
+    
+    public void publishMessageToUsers(Message message, Set<String> usernames) {
+        
+        for (String username : usernames) {
+            
+            publishMessageToUser(message, username);
+            
         }
         
     }

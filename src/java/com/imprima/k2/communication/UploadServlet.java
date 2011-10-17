@@ -4,23 +4,43 @@
  */
 package com.imprima.k2.communication;
 
+import com.imprima.k2.datastore.ProductionDatastore;
+import com.imprima.kesession.UserSessionController;
+import com.imprima.level9.Message;
+import com.imprima.level9.UserMessage;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Map.Entry;
+import java.io.InputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Part;
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload.util.Streams;
 
 /**
  *
  * @author henrik
  */
-@MultipartConfig(location = "/tmp", fileSizeThreshold = 1024 * 1024)
 public class UploadServlet extends HttpServlet {
+
+    private UserSessionController userSessionController = UserSessionController.getInstance();
+    private ProductionDatastore productionDatastore = ProductionDatastore.getInstance();
+    private ServletFileUpload upload = new ServletFileUpload();
+
+    @Override
+    public void init() throws ServletException {
+
+        upload.setSizeMax(8589934592L);
+        super.init();
+
+    }
 
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -32,64 +52,67 @@ public class UploadServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        long start = System.currentTimeMillis();
+        
+        Integer ordernumber = null;
+        String filename = null;
+
+        response.setCharacterEncoding("UTF8");
         request.setCharacterEncoding("UTF8");
 
-        PrintWriter writer = response.getWriter();
+        if (ServletFileUpload.isMultipartContent(request)) {
 
-        try {
+            try {
 
-            for (Part part : request.getParts()) {
+                FileItemIterator iter = upload.getItemIterator(request);
 
-                if (getContentDispositionValue(part.getHeader("content-disposition"), "filename") != null) {
+                while (iter.hasNext()) {
 
-                    System.err.println(part.getContentType());
-                    System.err.println(part.getSize());
-                    System.err.println(getContentDispositionValue(part.getHeader("content-disposition"), "filename"));
+                    FileItemStream item = iter.next();
+                    String variableName = item.getFieldName();
+                    InputStream stream = item.openStream();
 
-                } else {
+                    if (item.isFormField()) {
 
-                    ParameterEntry entry = getParameter(part);
-                    
-                    System.err.println(entry.getKey() + ": " + entry.getValue());
+                        if (variableName.equals("ordernumber")) {
 
-                }
+                            ordernumber = Integer.parseInt(Streams.asString(stream));
 
-            }
+                        }
 
-        } finally {
-        }
-    }
+                    } else {
 
-    private ParameterEntry getParameter(Part part) throws IOException {
+                        String[] path = item.getName().split("\\\\");
 
-        byte[] data = new byte[(int) part.getSize()];
+                        filename = path[path.length - 1];
+                                                
+                        userSessionController.publishMessageToUsers(new UserMessage("'" + filename + "' laddas upp till order " + ordernumber + "."),
+                                productionDatastore.getUsernameSetByOrdernumer(ordernumber));
 
-        part.getInputStream().read(data);
-        
-        return new ParameterEntry(getContentDispositionValue(part.getHeader("content-disposition"), "name"), new String(data, "UTF8"));
+                        FileOutputStream outStream = new FileOutputStream(new File("/Users/henrik/Desktop/" + filename));
 
-    }
+                        byte[] buffer = new byte[8192];
+                        int length;
+                        while ((length = stream.read(buffer)) > 0) {
+                            outStream.write(buffer, 0, length);
+                        }
 
-    private String getContentDispositionValue(String contentDispositionString, String key) {
+                        outStream.close();
+                        buffer = null;
+                        
+                        userSessionController.publishMessageToUsers(new UserMessage("'" + filename + "' har laddats upp till order " + ordernumber + "."),
+                                productionDatastore.getUsernameSetByOrdernumer(ordernumber));
 
-        String retval = null;
-
-        if (contentDispositionString.startsWith("form-data;")) {
-
-            for (String entry : contentDispositionString.split(";")) {
-
-                if (entry.trim().startsWith(key)) {
-
-                    retval = entry.split("=")[1].replace("\"", "");
-                    break;
+                    }
 
                 }
 
+            } catch (FileUploadException ex) {
+                Logger.getLogger(UploadServlet.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
             }
 
         }
-
-        return retval;
 
     }
 

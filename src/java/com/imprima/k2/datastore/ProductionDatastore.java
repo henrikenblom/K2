@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -60,6 +62,61 @@ public final class ProductionDatastore {
         
     } 
 
+    public synchronized Set<String> getUsernameSetByOrdernumer(int ordernumber) {
+        
+        Set<String> retval = new HashSet<String>();
+
+        Connection connection = null;
+        ResultSet resultSet = null;
+        PreparedStatement preparedStatement = null;
+
+        try {
+
+            connection = DBConnectionUtility.getCacheDBConnection();
+
+            preparedStatement = connection.prepareStatement("SELECT username "
+                    + "FROM order_user_relationship WHERE ordernumber =  ?");
+
+            preparedStatement.setInt(1, ordernumber);
+
+            resultSet = preparedStatement.executeQuery();
+
+            while (resultSet.next()) {
+
+                retval.add(resultSet.getString("username"));
+
+            }
+
+        } catch (SQLException ex) {
+
+            Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
+
+        } finally {
+
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                    resultSet = null;
+                } catch (SQLException ex) {
+                    Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            if (connection != null) {
+                try {
+                    connection.close();
+                    connection = null;
+                } catch (SQLException ex) {
+                    Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+        }
+
+        return retval;
+        
+    }
+    
     public synchronized ArrayList<Order> getOrderListByUsername(String username) {
 
         ArrayList<Order> retval = new ArrayList<Order>();
