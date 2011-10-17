@@ -15,7 +15,7 @@ import org.cometd.bayeux.server.ServerSession;
  */
 public class L9SubscriptionListener implements SubscriptionListener {
 
-    UserSessionController sessionStore = UserSessionController.getInstance();
+    UserSessionController userSessionController = UserSessionController.getInstance();
 
     @Override
     public void subscribed(ServerSession ss, ServerChannel sc) {
@@ -24,13 +24,13 @@ public class L9SubscriptionListener implements SubscriptionListener {
 
             Integer id = Integer.parseInt(sc.getId().replace("/", ""));
 
-            UserSession userSession = sessionStore.getUserSession(id);
+            UserSession userSession = userSessionController.getUserSession(id);
 
             if (!userSession.hasEstablishedL9Connection()) {
                 
                 userSession.setHasEstablishedL9Connection(true);
 
-                sessionStore.publishMessageToUsergroup(new UserMessage(userSession.get("fullname") + " loggade in."), UserSessionController.SYSTEM_USERS);
+                userSessionController.publishMessageToUsergroup(new UserMessage(userSession.get("fullname") + " loggade in."), UserSessionController.SYSTEM_USERS);
 
             }
 

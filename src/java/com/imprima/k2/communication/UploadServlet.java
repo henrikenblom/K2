@@ -6,7 +6,6 @@ package com.imprima.k2.communication;
 
 import com.imprima.k2.datastore.ProductionDatastore;
 import com.imprima.kesession.UserSessionController;
-import com.imprima.level9.Message;
 import com.imprima.level9.UserMessage;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -53,9 +52,12 @@ public class UploadServlet extends HttpServlet {
             throws ServletException, IOException {
 
         long start = System.currentTimeMillis();
-        
+
         Integer ordernumber = null;
         String filename = null;
+        FileOutputStream fileOutputStream = null;
+        File outputFile = null;
+        byte[] buffer = null;
 
         response.setCharacterEncoding("UTF8");
         request.setCharacterEncoding("UTF8");
@@ -85,21 +87,19 @@ public class UploadServlet extends HttpServlet {
                         String[] path = item.getName().split("\\\\");
 
                         filename = path[path.length - 1];
-                                                
+
                         userSessionController.publishMessageToUsers(new UserMessage("'" + filename + "' laddas upp till order " + ordernumber + "."),
                                 productionDatastore.getUsernameSetByOrdernumer(ordernumber));
 
-                        FileOutputStream outStream = new FileOutputStream(new File("/Users/henrik/Desktop/" + filename));
+                        outputFile = new File("/Users/henrik/Desktop/" + filename);
+                        fileOutputStream = new FileOutputStream(outputFile);
 
-                        byte[] buffer = new byte[8192];
+                        buffer = new byte[8192];
                         int length;
                         while ((length = stream.read(buffer)) > 0) {
-                            outStream.write(buffer, 0, length);
+                            fileOutputStream.write(buffer, 0, length);
                         }
 
-                        outStream.close();
-                        buffer = null;
-                        
                         userSessionController.publishMessageToUsers(new UserMessage("'" + filename + "' har laddats upp till order " + ordernumber + "."),
                                 productionDatastore.getUsernameSetByOrdernumer(ordernumber));
 
@@ -110,6 +110,22 @@ public class UploadServlet extends HttpServlet {
             } catch (FileUploadException ex) {
                 Logger.getLogger(UploadServlet.class.getName()).log(Level.SEVERE, null, ex);
             } finally {
+
+                if (fileOutputStream != null) {
+                    
+                    try {
+                    fileOutputStream.close();
+                    } catch (Exception ex) {
+                        //no-op
+                    }
+                    
+                    fileOutputStream = null;
+                    
+                }
+                
+                buffer = null;
+                outputFile = null;
+
             }
 
         }

@@ -28,7 +28,7 @@ public class GKSSynchronizationTask extends TimerTask {
 
     private CacheDBUtility cacheDBUtility = new CacheDBUtility();
     private ProductionDatastore productionDatastore = ProductionDatastore.getInstance();
-    private UserSessionController sessionStore = UserSessionController.getInstance();
+    private UserSessionController userSessionController = UserSessionController.getInstance();
     private HashMap<Integer, String[]> userIdMap;
     private HashMap<Integer, String[]> clientIdMap;
     private ResourceBundle orderfields = ResourceBundle.getBundle("orderfields");
@@ -186,8 +186,8 @@ public class GKSSynchronizationTask extends TimerTask {
 
                         preparedStatement.executeUpdate();
 
-                        sessionStore.publishMessageToUser(new AddOrderMessage(order), orderUserRelationship.getUsername());
-                        sessionStore.publishMessageToUser(new UserMessage("Ny order: " + order.getOrdernumber() + " " + order.getName()), orderUserRelationship.getUsername());
+                        userSessionController.publishMessageToUser(new AddOrderMessage(order), orderUserRelationship.getUsername());
+                        userSessionController.publishMessageToUser(new UserMessage("Ny order: " + order.getOrdernumber() + " " + order.getName()), orderUserRelationship.getUsername());
 
                     }
 
@@ -284,23 +284,23 @@ public class GKSSynchronizationTask extends TimerTask {
                             if (!cancelledRelationshipUsers.contains(recipient)
                                     && !assignedRelationshipUsers.contains(recipient)) {
 
-                                sessionStore.publishMessageToUser(new OrderUpdateMessage(order.getOrdernumber(), orderComparison), recipient);
+                                userSessionController.publishMessageToUser(new OrderUpdateMessage(order.getOrdernumber(), orderComparison), recipient);
 
                             }
 
-                            sessionStore.publishMessageToUser(new UserMessage(orderUpdateMessage.toString()), recipient);
+                            userSessionController.publishMessageToUser(new UserMessage(orderUpdateMessage.toString()), recipient);
 
                         }
 
                         for (String recipient : cancelledRelationshipUsers) {
 
-                            sessionStore.publishMessageToUser(new OrderRemovalMessage(order.getOrdernumber()), recipient);
+                            userSessionController.publishMessageToUser(new OrderRemovalMessage(order.getOrdernumber()), recipient);
 
                         }
 
                         for (String recipient : assignedRelationshipUsers) {
 
-                            sessionStore.publishMessageToUser(new AddOrderMessage(order), recipient);
+                            userSessionController.publishMessageToUser(new AddOrderMessage(order), recipient);
 
                         }
 
