@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -29,17 +30,46 @@ import org.apache.commons.fileupload.util.Streams;
  */
 public class UploadServlet extends HttpServlet {
 
-    private static final int BUFFERSIZE = 8192;
-    
+    private static final int DEFAULTCHUNKSIZE = 8192;
+    private static final long DEFAULTMAXIMUMFILESIZE = 8589934592L;
     private UserSessionController userSessionController = UserSessionController.getInstance();
     private ProductionDatastore productionDatastore = ProductionDatastore.getInstance();
     private ServletFileUpload servletUpload = new ServletFileUpload();
+    private String temporaryDirectory = "/tmp";
+    private int chunkSize = DEFAULTCHUNKSIZE;
 
     @Override
-    public void init() throws ServletException {
+    public void init(ServletConfig config) throws ServletException {
 
-        servletUpload.setSizeMax(8589934592L);
-        super.init();
+        try {
+
+            setTemporaryDirectory(config.getInitParameter("temporaryDirectory"));
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        try {
+
+            servletUpload.setSizeMax(Long.parseLong(config.getInitParameter("maximumFileSize")));
+
+        } catch (Exception ex) {
+
+            Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Using default maximum file size of " + DEFAULTMAXIMUMFILESIZE + " bytes.");
+
+        }
+
+        try {
+
+            setChunkSize(Integer.parseInt(config.getInitParameter("chunkSize")));
+
+        } catch (Exception ex) {
+
+            Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Using default chunk size of " + DEFAULTCHUNKSIZE + " bytes.");
+
+        }
+
+        super.init(config);
 
     }
 
@@ -58,6 +88,7 @@ public class UploadServlet extends HttpServlet {
         FileOutputStream fileOutputStream = null;
         File outputFile = null;
         byte[] buffer = null;
+        InputStream inputStream = null;
 
         response.setCharacterEncoding("UTF8");
         request.setCharacterEncoding("UTF8");
@@ -72,13 +103,13 @@ public class UploadServlet extends HttpServlet {
 
                     FileItemStream item = iter.next();
                     String variableName = item.getFieldName();
-                    InputStream stream = item.openStream();
+                    inputStream = item.openStream();
 
                     if (item.isFormField()) {
 
                         if (variableName.equals("ordernumber")) {
 
-                            ordernumber = Integer.parseInt(Streams.asString(stream));
+                            ordernumber = Integer.parseInt(Streams.asString(inputStream));
 
                         }
 
@@ -87,18 +118,18 @@ public class UploadServlet extends HttpServlet {
                         String[] path = item.getName().split("\\\\");
 
                         originalFilename = path[path.length - 1];
-                        
+
                         path = null;
 
                         userSessionController.publishMessageToUsers(new UserMessage("'" + originalFilename + "' laddas upp till order " + ordernumber + "."),
                                 productionDatastore.getUsernameSetByOrdernumer(ordernumber));
 
-                        outputFile = new File("/Users/henrik/Desktop/" + originalFilename);
+                        outputFile = new File(getTemporaryDirectory() + "/" + originalFilename);
                         fileOutputStream = new FileOutputStream(outputFile);
 
-                        buffer = new byte[BUFFERSIZE];
+                        buffer = new byte[chunkSize];
                         int length;
-                        while ((length = stream.read(buffer)) > 0) {
+                        while ((length = inputStream.read(buffer)) > 0) {
                             fileOutputStream.write(buffer, 0, length);
                         }
 
@@ -113,30 +144,30 @@ public class UploadServlet extends HttpServlet {
                 Logger.getLogger(UploadServlet.class.getName()).log(Level.SEVERE, null, ex);
             } finally {
 
-                if (fileOutputStream != null) {
-                    
+                if (inputStream != null) {
+
                     try {
-                    fileOutputStream.close();
+                        inputStream.close();
                     } catch (Exception ex) {
                         //no-op
                     }
-                    
-                    fileOutputStream = null;
-                    
+
+                    inputStream = null;
+
                 }
-                
+
                 if (fileOutputStream != null) {
-                    
+
                     try {
-                    fileOutputStream.close();
+                        fileOutputStream.close();
                     } catch (Exception ex) {
                         //no-op
                     }
-                    
+
                     fileOutputStream = null;
-                    
+
                 }
-                
+
                 buffer = null;
                 outputFile = null;
 
@@ -181,4 +212,55 @@ public class UploadServlet extends HttpServlet {
     public String getServletInfo() {
         return "Short description";
     }// </editor-fold>
+
+    private String getTemporaryDirectory() {
+        return temporaryDirectory;
+    }
+
+    private void setTemporaryDirectory(String temporaryDirectory) throws Exception {
+
+        if (temporaryDirectory == null) {
+            
+            throw new Exception("temporaryDirectory can not be 'null'. Now set to '" + getTemporaryDirectory() + "'");
+            
+        } else {
+            
+            this.temporaryDirectory = temporaryDirectory;
+            Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, "Temporary directory set to '" + temporaryDirectory + "'.");
+            
+        }
+
+    }
+
+    private void setMaximumFileSize(long maximumFileSize) {
+
+        if (maximumFileSize > 1073741824L) {
+
+            servletUpload.setFileSizeMax(maximumFileSize);
+            Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, "Maximum file size set to " + maximumFileSize + " bytes.");
+
+        } else {
+
+            Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Requested maximum file size is too small. Using default maximum file size of " + DEFAULTMAXIMUMFILESIZE + " bytes.");
+            servletUpload.setFileSizeMax(DEFAULTMAXIMUMFILESIZE);
+
+        }
+
+    }
+
+    private void setChunkSize(int chunkSize) {
+
+        if (chunkSize > 1024) {
+
+            this.chunkSize = chunkSize;
+            Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.INFO, "Chunk size set to " + chunkSize + " bytes.");
+
+        } else {
+
+            Logger.getLogger(Logger.GLOBAL_LOGGER_NAME).log(Level.WARNING, "Requested chunk size is too small. Using default chunk size of " + DEFAULTCHUNKSIZE + " bytes.");
+            this.chunkSize = DEFAULTCHUNKSIZE;
+
+        }
+
+    }
 }

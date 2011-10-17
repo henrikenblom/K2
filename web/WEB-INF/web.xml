@@ -3,6 +3,19 @@
     <servlet>
         <servlet-name>UploadServlet</servlet-name>
         <servlet-class>com.imprima.k2.communication.UploadServlet</servlet-class>
+        <init-param>
+            <param-name>temporaryDirectory</param-name>
+            <param-value>/Users/henrik/Desktop</param-value>
+        </init-param>
+        <init-param>
+            <param-name>maximumFileSize</param-name>
+            <param-value>8589934592</param-value>
+        </init-param>
+        <init-param>
+            <param-name>chunkSize</param-name>
+            <param-value>8192</param-value>
+        </init-param>
+        <load-on-startup>2</load-on-startup>
     </servlet>
     <servlet-mapping>
         <servlet-name>OrderServlet</servlet-name>
