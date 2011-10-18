@@ -51,7 +51,7 @@ public class UploadServlet extends HttpServlet {
 
         try {
 
-            servletUpload.setSizeMax(Long.parseLong(config.getInitParameter("maximumFileSize")));
+            setMaximumFileSize(Long.parseLong(config.getInitParameter("maximumFileSize")));
 
         } catch (Exception ex) {
 
@@ -83,12 +83,11 @@ public class UploadServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        Integer ordernumber = null;
-        String originalFilename = null;
         FileOutputStream fileOutputStream = null;
         File outputFile = null;
         byte[] buffer = null;
         InputStream inputStream = null;
+        FileUploadMetadata fileUploadMetadata = new FileUploadMetadata();
 
         response.setCharacterEncoding("UTF8");
         request.setCharacterEncoding("UTF8");
@@ -109,32 +108,38 @@ public class UploadServlet extends HttpServlet {
 
                         if (variableName.equals("ordernumber")) {
 
-                            ordernumber = Integer.parseInt(Streams.asString(inputStream));
+                            fileUploadMetadata.setOrdernumber(Integer.parseInt(Streams.asString(inputStream)));
 
+                        } else if (variableName.equals("fullname")) {
+                            
+                            fileUploadMetadata.setFullname(Streams.asString(inputStream));
+                            
+                        } else if (variableName.equals("email")) {
+                            
+                            fileUploadMetadata.setEmail(Streams.asString(inputStream));
+                            
                         }
-
+                            
                     } else {
 
-                        String[] path = item.getName().split("\\\\");
+                        String[] path = item.getName().replace(":", "_").replace("/", "_").replace(">", "_").replace("&", "o").split("\\\\");
 
-                        originalFilename = path[path.length - 1];
+                        fileUploadMetadata.setOriginalFilename(path[path.length - 1]);
 
                         path = null;
 
-                        userSessionController.publishMessageToUsers(new UserMessage("'" + originalFilename + "' laddas upp till order " + ordernumber + "."),
-                                productionDatastore.getUsernameSetByOrdernumer(ordernumber));
+                        userSessionController.publishMessageToUsers(new UserMessage("'" + fileUploadMetadata.getOriginalFilename() + "' laddas upp till order " + fileUploadMetadata.getOrdernumber() + "."),
+                                productionDatastore.getUsernameSetByOrdernumer(fileUploadMetadata.getOrdernumber()));
 
-                        outputFile = new File(getTemporaryDirectory() + "/" + originalFilename);
+                        outputFile = new File(getTemporaryDirectory() + "/" + fileUploadMetadata.getOriginalFilename());
                         fileOutputStream = new FileOutputStream(outputFile);
 
                         buffer = new byte[chunkSize];
-                        int length;
-                        while ((length = inputStream.read(buffer)) > 0) {
-                            fileOutputStream.write(buffer, 0, length);
-                        }
+                        
+                        Streams.copy(inputStream, fileOutputStream, true, buffer);
 
-                        userSessionController.publishMessageToUsers(new UserMessage("'" + originalFilename + "' har laddats upp till order " + ordernumber + "."),
-                                productionDatastore.getUsernameSetByOrdernumer(ordernumber));
+                        userSessionController.publishMessageToUsers(new UserMessage("'" + fileUploadMetadata.getOriginalFilename() + "' har laddats upp till order " + fileUploadMetadata.getOrdernumber() + "."),
+                                productionDatastore.getUsernameSetByOrdernumer(fileUploadMetadata.getOrdernumber()));
 
                     }
 
@@ -174,7 +179,7 @@ public class UploadServlet extends HttpServlet {
             }
 
         }
-
+        
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
@@ -221,7 +226,7 @@ public class UploadServlet extends HttpServlet {
 
         if (temporaryDirectory == null) {
             
-            throw new Exception("temporaryDirectory can not be 'null'. Now set to '" + getTemporaryDirectory() + "'");
+            throw new Exception("Temporary directory can not be 'null'. Now set to '" + getTemporaryDirectory() + "'");
             
         } else {
             

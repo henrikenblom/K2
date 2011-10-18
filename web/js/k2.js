@@ -13,6 +13,7 @@ var sortingcaption = {
     "timestamp":"tidpunkt"
 };
 
+
 function handleKeyEvent(event) {
 
     switch (event.keyCode) {
@@ -138,22 +139,9 @@ function showOrderDetails(ordernumber) {
             orderdetails.append(orderdetailsHeader)
             .append(updated);
                     
-            orderdetails.fileupload({
-                url: 'UploadServlet',
-                dropZone: orderdetails,
-                formData: [
-                {
-                    name: 'ordernumber',
-                    value: orderData.ordernumber
-                },
-                {
-                    name: 'test',
-                    value: 'åäö ÅÄÖ'
-                }
-                ]
-            });
+            makeFileuploadDropZone(orderdetails, orderData.ordernumber, 'order-list-entry-' + orderData.ordernumber);        
         
-            $('#content-layer').html(orderdetails);            
+            $('#content-layer').append(orderdetails);            
             $('#content-layer').click(function() {
             
                 $('#content-layer').unbind('click');
@@ -203,11 +191,11 @@ function closeOrderdetails(ordernumber) {
 
 function generateOrderListEntry(orderData) {
 
-    var frameDiv = $('<div>');
-    frameDiv.attr("style", "display: none");
-    frameDiv.addClass('order-list-entry');
-    frameDiv.attr('data-id', 'id-' + orderData.ordernumber);
-    frameDiv.attr('id', 'order-list-entry-' + orderData.ordernumber);
+    var orderListEntry = $('<div>');
+    orderListEntry.attr("style", "display: none");
+    orderListEntry.addClass('order-list-entry');
+    orderListEntry.attr('data-id', 'id-' + orderData.ordernumber);
+    orderListEntry.attr('id', 'order-list-entry-' + orderData.ordernumber);
     
     var timestamp = $('<div>');
     timestamp.html(orderData.timestamp);
@@ -230,7 +218,7 @@ function generateOrderListEntry(orderData) {
     ordername.html(ordernameString);
     ordername.addClass('ordername');
     
-    frameDiv.attr('title', orderData.name);
+    orderListEntry.attr('title', orderData.name);
     
     var updated = $('<div>');
     updated.html(orderData.updated);
@@ -239,25 +227,25 @@ function generateOrderListEntry(orderData) {
     var sales_fullname_label = $('<label>');
     sales_fullname_label.html('Säljare:');
     
-    var sales_fullname = $('<div>');
+    var sales_fullname = $('<span>');
     sales_fullname.html(orderData.sales_fullname);
     sales_fullname.addClass('sales_fullname');
     
     var projectmanager_fullname_label = $('<label>');
     projectmanager_fullname_label.html('Projektledare:');
     
-    var projectmanager_fullname = $('<div>');
+    var projectmanager_fullname = $('<span>');
     projectmanager_fullname.html(orderData.projectmanager_fullname);
     projectmanager_fullname.addClass('projectmanager_fullname');
     
     var client_fullname_label = $('<label>');
     client_fullname_label.html('Kund:');
     
-    var client_fullname = $('<div>');
+    var client_fullname = $('<span>');
     client_fullname.html(orderData.client_fullname);
     client_fullname.addClass('client_fullname');
     
-    frameDiv.append(timestamp)
+    orderListEntry.append(timestamp)
     .append(ordernumber)
     .append(ordername)
     .append(updated)
@@ -272,25 +260,68 @@ function generateOrderListEntry(orderData) {
     .append(projectmanager_fullname_label)
     .append(projectmanager_fullname);
 
-    frameDiv.fileupload({
-                url: 'UploadServlet',
-                dropZone: frameDiv,
-                formData: [
-                {
-                    name: 'ordernumber',
-                    value: orderData.ordernumber
-                }
-                ]
-            });
-
-    frameDiv.click(function() {
+    makeFileuploadDropZone(orderListEntry, orderData.ordernumber, 'order-list-entry-' + orderData.ordernumber);
+    
+    orderListEntry.click(function() {
         
         showOrderDetails(orderData.ordernumber);
         
     });
     
-    return frameDiv;
+    return orderListEntry;
                 
+}
+
+function makeFileuploadDropZone(element, ordernumber, selector) {
+        
+    element.fileupload({
+        type: 'POST',
+        url: 'UploadServlet',
+        singleFileUploads: false,
+        dropZone: element,
+        formData: [
+        {
+            name: 'ordernumber',
+            value: ordernumber
+        },
+        {
+            name: 'email',
+            value: email
+        },
+        {
+            name: 'fullname',
+            value: name
+        }
+        ]
+    });
+    
+    element.bind('fileuploadprogressall', function (e, data) {
+        $('#' + selector + ' > .progressbar').progressbar( "value" , parseInt(data.loaded / data.total * 100, 10));
+    })
+    .bind('fileuploadstart', function (e) {
+        
+        var fileuploadprogressbar = $('<div>');
+        fileuploadprogressbar.addClass('progressbar');
+        fileuploadprogressbar.progressbar({
+            value: 0
+        });
+        
+        element.append(fileuploadprogressbar);
+                
+    })
+    .bind('fileuploaddone', function (e, data) {
+        $('#' + selector + ' > .progressbar').fadeOut(effectDurationDenominator);
+    })
+    .bind('fileuploaddragover', function (e) {
+        element.addClass('ui-state-hover');
+    })
+    .bind('dragleave', function(e) {
+        element.removeClass('ui-state-hover');
+    })
+    .bind('fileuploaddrop', function (e, data) {
+        element.removeClass('ui-state-hover');
+    })
+    
 }
 
 function handleLevel9Message(bayeuxMessage) {
@@ -440,9 +471,6 @@ function showUserSettingsDialog() {
                     
         $('#userSettingsDialogNoCookie').hide();
         $('#userSettingsDialogChangeData').show();
-
-        name = $.cookie("name");
-        email = $.cookie("email");
                     
         $('#name').val(name);
         $('#email').val(email);

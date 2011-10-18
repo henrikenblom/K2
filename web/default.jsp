@@ -26,7 +26,7 @@
         <script type="text/javascript" src="js/org/cometd.js"></script>
         <script type="text/javascript" src="js/org/cometd/ReloadExtension.js"></script>
         <script type="text/javascript" src="js/json2.js"></script>
-        <script type="text/javascript" src="js/jquery/jquery-1.6.2.min.js"></script>
+        <script type="text/javascript" src="js/jquery/jquery-1.6.4.min.js"></script>
         <script type="text/javascript" src="js/jquery/jquery-ui-1.8.16.custom.min.js"></script>
         <script type="text/javascript" src="js/jquery/jquery.dateFormat-1.0.js"></script>
         <script type="text/javascript" src="js/jquery/jquery.cometd.js"></script>
@@ -122,6 +122,11 @@
                     
                     showUserSettingsDialog();
                     
+                } else {
+                    
+                    name = $.cookie("name");
+                    email = $.cookie("email");
+                    
                 }
                 
                 $("#orderview-info-button").button( { icons: {primary:'ui-icon-document'} } );
@@ -194,7 +199,7 @@
             <div id="order-list" class="ui-widget">
             </div>
         </div>
-            			<div id="dropzone-info" style="width: 500px;" ></div>
+        <div id="dropzone-info" style="width: 500px;" ></div>
         <div id="content-layer" ondragenter="return false" ondragover="return false" ondrop="return false">
         </div>
         <div id="notice-hover-detection-layer" onmouseover="handleMouseOverNoticeHoverDetectionLayer()" ondragenter="return false" ondragover="return false" ondrop="return false">

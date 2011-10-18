@@ -23,7 +23,7 @@ label {
     font-weight: normal;
 }
 
-input, div, label {
+input,label {
     display: inline;
 }
 
@@ -158,12 +158,12 @@ li label {
 
 .order-list-entry {
     margin: 0;
-    height: 70px;
     border-bottom: 1px solid #cccbcc;
     padding: 5px;
     white-space: nowrap;
     font-weight: bold;
     display: block;
+    width: 320px;
 }
 
 .menu-divider {
@@ -206,27 +206,16 @@ li label {
     margin-right: 0.4em;
 }
 
-.projectTray {
-    margin: 16px;
-    padding: 16px;
-    display: inline-block;
-    width: 400px;
-    height: 300px;
-}
-
-.drag-enter {
-
-}
-
 .text {
     width: 140px;
 }
 
-
-.drag-enter {
-    background-color: #72BE83;
-}
-
 .timestamp {
     display: none;
+}
+
+.progressbar {
+    margin-top: 4px;
+    width: 308px;
+    height: 10px;
 }
