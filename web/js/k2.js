@@ -1,4 +1,3 @@
-
 var noticeLayerDisplayTimer = null;
 var projectTrayArray = new Array();
 var trayWidth = 483;
@@ -139,7 +138,7 @@ function showOrderDetails(ordernumber) {
             orderdetails.append(orderdetailsHeader)
             .append(updated);
                     
-            makeFileuploadDropZone(orderdetails, orderData.ordernumber, 'order-list-entry-' + orderData.ordernumber);        
+            makeFileuploadDropZone(orderdetails, orderData.ordernumber);        
         
             $('#content-layer').append(orderdetails);            
             $('#content-layer').click(function() {
@@ -245,6 +244,9 @@ function generateOrderListEntry(orderData) {
     client_fullname.html(orderData.client_fullname);
     client_fullname.addClass('client_fullname');
     
+    var uploaded_filename = $('<span>');
+    uploaded_filename.attr('id', 'uploaded-filename' + orderData.ordernumber);
+    
     orderListEntry.append(timestamp)
     .append(ordernumber)
     .append(ordername)
@@ -260,7 +262,7 @@ function generateOrderListEntry(orderData) {
     .append(projectmanager_fullname_label)
     .append(projectmanager_fullname);
 
-    makeFileuploadDropZone(orderListEntry, orderData.ordernumber, 'order-list-entry-' + orderData.ordernumber);
+    makeFileuploadDropZone(orderListEntry, orderData.ordernumber);
     
     orderListEntry.click(function() {
         
@@ -272,13 +274,18 @@ function generateOrderListEntry(orderData) {
                 
 }
 
-function makeFileuploadDropZone(element, ordernumber, selector) {
-        
-    element.fileupload({
+function makeFileuploadDropZone(dropZone, ordernumber) {
+    
+    var identifier = getUniqueIdFromServer();
+
+    $('body').append('<div id=\'fileupload-' + identifier + '\' class=\'fileupload\'></div>');
+    
+    $('#fileupload-' + identifier).fileupload({
         type: 'POST',
         url: 'UploadServlet',
         singleFileUploads: false,
-        dropZone: element,
+        dropZone: dropZone,
+        namespace: identifier,
         formData: [
         {
             name: 'ordernumber',
@@ -291,36 +298,71 @@ function makeFileuploadDropZone(element, ordernumber, selector) {
         {
             name: 'fullname',
             value: name
+        },
+        {
+            name: 'identifier',
+            value: identifier
         }
         ]
     });
     
-    element.bind('fileuploadprogressall', function (e, data) {
-        $('#' + selector + ' > .progressbar').progressbar( "value" , parseInt(data.loaded / data.total * 100, 10));
-    })
-    .bind('fileuploadstart', function (e) {
+    $('#fileupload-' + identifier).bind('fileuploaddragover', function (e) {
         
-        var fileuploadprogressbar = $('<div>');
-        fileuploadprogressbar.addClass('progressbar');
-        fileuploadprogressbar.progressbar({
+        dropZone.addClass('ui-state-hover');
+        
+    })
+    .bind('fileuploaddrop', function (e, data) {
+        
+        dropZone.removeClass('ui-state-hover');
+        
+    }).bind('fileuploadstart', function (e) {
+                
+        dropZone.append('<div id=\'progessbar-' + identifier + '\'>');
+        $('#progessbar-' + identifier).addClass('progressbar');
+        $('#progessbar-' + identifier).progressbar({
             value: 0
         });
         
-        element.append(fileuploadprogressbar);
+        makeFileuploadDropZone(dropZone, ordernumber);
                 
     })
-    .bind('fileuploaddone', function (e, data) {
-        $('#' + selector + ' > .progressbar').fadeOut(effectDurationDenominator);
+    .bind('fileuploadstop', function (e, data) {
+        
+        $('#fileupload-' + identifier).remove();
+        $('#progessbar-' + identifier).fadeOut(effectDurationDenominator, function() {
+            $('#progessbar-' + identifier).remove();
+        });
+        
     })
-    .bind('fileuploaddragover', function (e) {
-        element.addClass('ui-state-hover');
-    })
-    .bind('dragleave', function(e) {
-        element.removeClass('ui-state-hover');
-    })
-    .bind('fileuploaddrop', function (e, data) {
-        element.removeClass('ui-state-hover');
-    })
+    .bind('fileuploadprogressall', function (e, data) {
+        
+        $('#progessbar-' + identifier).progressbar('value' , parseInt(data.loaded / data.total * 100, 10));
+        
+    });
+    
+    dropZone.bind('dragleave', function(e) {
+        
+        dropZone.removeClass('ui-state-hover');
+        
+    });
+    
+}
+
+function getUniqueIdFromServer() {
+    
+    var id = 0;
+    
+    $.ajax({
+        async: false,
+        url: 'UniqueUploadSessionIdGenerator?action=get_timestamp',
+        dataType: 'json',
+        context: document.body,
+        success: function(data){
+            id = data;
+        }
+    });
+    
+    return id;
     
 }
 

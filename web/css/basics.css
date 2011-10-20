@@ -219,3 +219,7 @@ li label {
     width: 308px;
     height: 10px;
 }
+
+.fileupload {
+    display: none;
+}

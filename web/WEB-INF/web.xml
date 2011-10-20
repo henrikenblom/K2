@@ -17,6 +17,10 @@
         </init-param>
         <load-on-startup>2</load-on-startup>
     </servlet>
+    <servlet>
+        <servlet-name>UniqueUploadSessionIdGenerator</servlet-name>
+        <servlet-class>com.imprima.k2.communication.UniqueUploadSessionIdGenerator</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>OrderServlet</servlet-name>
         <url-pattern>/OrderServlet</url-pattern>
@@ -24,6 +28,10 @@
     <servlet-mapping>
         <servlet-name>UploadServlet</servlet-name>
         <url-pattern>/UploadServlet</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>UniqueUploadSessionIdGenerator</servlet-name>
+        <url-pattern>/UniqueUploadSessionIdGenerator</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>60</session-timeout>

@@ -195,12 +195,12 @@
                 <li class="ui-menu-item ui-corner-all" role="menuitem"><a href="#" onclick="logoutAction()" class="ui-corner-all" tabindex="-1">Logga ut</a></li>
             </ul>
         </div>
-        <div id="order-list-layer" class="ui-widget" ondragenter="return false" ondragover="return false" ondrop="return false">
+        <div id="order-list-layer" class="ui-widget">
             <div id="order-list" class="ui-widget">
             </div>
         </div>
         <div id="dropzone-info" style="width: 500px;" ></div>
-        <div id="content-layer" ondragenter="return false" ondragover="return false" ondrop="return false">
+        <div id="content-layer">
         </div>
         <div id="notice-hover-detection-layer" onmouseover="handleMouseOverNoticeHoverDetectionLayer()" ondragenter="return false" ondragover="return false" ondrop="return false">
         </div>
