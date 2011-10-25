@@ -76,7 +76,7 @@
                 {
                     if (!message.successful) {
                     
-                        logoutAction();
+                        window.location.reload(true);
                     
                     }
                 });

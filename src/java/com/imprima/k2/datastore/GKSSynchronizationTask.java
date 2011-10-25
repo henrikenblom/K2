@@ -1,5 +1,6 @@
 package com.imprima.k2.datastore;
 
+import com.imprima.kesession.UserSession;
 import com.imprima.kesession.UserSessionController;
 import com.imprima.level9.AddOrderMessage;
 import com.imprima.level9.OrderRemovalMessage;
@@ -10,6 +11,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.ResourceBundle;
