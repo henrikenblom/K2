@@ -9,7 +9,7 @@ var cometd = $.cometd;
 var sortingcaption = {
     "ordernumber":"ordernummer",
     "ordername":"ordernamn", 
-    "timestamp":"tidpunkt"
+    "timestamp":"aktualitet"
 };
 
 
@@ -104,7 +104,7 @@ function showOrderDetails(ordernumber) {
         
         }
         
-        $.getJSON('OrderServlet', {
+        $.getJSON('servlet/order', {
         
             action:'get_order_by_ordernumber', 
             ordernumber: ordernumber
@@ -316,12 +316,14 @@ function makeFileuploadDropZone(dropZone, ordernumber) {
         dropZone.removeClass('ui-state-hover');
         
     }).bind('fileuploadstart', function (e) {
-                
-        dropZone.append('<div id=\'progessbar-' + identifier + '\'>');
-        $('#progessbar-' + identifier).addClass('progressbar');
-        $('#progessbar-' + identifier).progressbar({
+         
+        var progressbar = $('<div>').addClass('progressbar');
+        progressbar.attr('id', 'progessbar-' + identifier);
+        progressbar.progressbar({
             value: 0
         });
+        
+        $('#order-list-entry-' + ordernumber).append(progressbar);
         
         makeFileuploadDropZone(dropZone, ordernumber);
                 
@@ -334,7 +336,7 @@ function makeFileuploadDropZone(dropZone, ordernumber) {
         });
         
     })
-    .bind('fileuploadprogressall', function (e, data) {
+    .bind('fileuploadprogress', function (e, data) {
         
         $('#progessbar-' + identifier).progressbar('value' , parseInt(data.loaded / data.total * 100, 10));
         
@@ -354,7 +356,7 @@ function getUniqueIdFromServer() {
     
     $.ajax({
         async: false,
-        url: 'UniqueUploadSessionIdGenerator?action=get_timestamp',
+        url: 'servlet/unique_id?action=get_timestamp',
         dataType: 'json',
         context: document.body,
         success: function(data){

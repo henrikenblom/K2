@@ -125,7 +125,7 @@ public class UploadServlet extends HttpServlet {
                         String[] path = item.getName().replace(":", "_").replace("/", "_").replace(">", "_").replace("&", "o").split("\\\\");
 
                         fileUploadMetadata.setOriginalFilename(path[path.length - 1]);
-
+                        
                         path = null;
 
                         userSessionController.publishMessageToUsers(new UserMessage("'" + fileUploadMetadata.getOriginalFilename() + "' laddas upp till order " + fileUploadMetadata.getOrdernumber() + "."),

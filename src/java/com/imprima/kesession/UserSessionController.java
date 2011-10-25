@@ -69,6 +69,18 @@ public class UserSessionController {
 
     }
 
+    public boolean userSessionExists(String sessionId) {
+        
+        return sessionId != null && channelIdCache.containsKey(sessionId);
+        
+    }
+    
+    public boolean userSessionExists(Integer id) {
+        
+        return id != null && sessionList.containsKey(id);
+        
+    }
+    
     public UserSession getUserSession(String sessionId) {
 
         return sessionList.get(channelIdCache.get(sessionId));

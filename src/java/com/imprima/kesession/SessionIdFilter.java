@@ -30,13 +30,14 @@ public class SessionIdFilter implements Filter {
 
     private static final boolean debug = false;
     private FilterConfig filterConfig = null;
-    private UserSessionController sessionStore = UserSessionController.getInstance();
+    private UserSessionController userSessionController = UserSessionController.getInstance();
 
     public SessionIdFilter() {
     }
 
     private void doBeforeProcessing(RequestWrapper request, ResponseWrapper response)
             throws IOException, ServletException {
+        
         if (debug) {
             log("SessionIdFilter:DoBeforeProcessing");
         }
@@ -77,13 +78,13 @@ public class SessionIdFilter implements Filter {
         final HttpSession httpSession = httpRequest.getSession(false);
         UserSession userSession = null;
                 
-        if (httpRequest.getRemoteUser() != null && !sessionStore.sessionExists(httpSession.getId())) {
+        if (httpRequest.getRemoteUser() != null && !userSessionController.sessionExists(httpSession.getId())) {
 
-            userSession = sessionStore.createSession(httpSession, httpRequest.getRemoteUser(), request.getServletContext());
+            userSession = userSessionController.createSession(httpSession, httpRequest.getRemoteUser(), request.getServletContext());
             
-        } else if (sessionStore.sessionExists(httpSession.getId())) {
+        } else if (userSessionController.sessionExists(httpSession.getId())) {
             
-            userSession = sessionStore.getUserSession(httpSession.getId());
+            userSession = userSessionController.getUserSession(httpSession.getId());
             
         }
 
@@ -129,7 +130,7 @@ public class SessionIdFilter implements Filter {
     @Override
     public void destroy() {
         
-        sessionStore.destroy();
+        userSessionController.destroy();
         
     }
 

@@ -6,7 +6,15 @@ function showUserSettingsAction() {
 }
 
 function logoutAction() {
-       
+    
+    if (cometdSubscription) {
+        
+        cometd.unsubscribe(cometdSubscription);
+        
+    }
+    
+    cometdSubscription = null;
+    
     clearMessageBar();
        
     document.location = 'logout.jsp';

@@ -210,7 +210,19 @@ public class GKSSynchronizationTask extends TimerTask {
 
                                 String humanReadableFieldName = orderfields.getString(field).substring(0, 1).toUpperCase() + orderfields.getString(field).substring(1);
 
-                                orderUpdateMessage.append(humanReadableFieldName).append(" ändrades från ").append(differences.get(field).getOldValue()).append(" till ").append(differences.get(field).getNewValue()).append(". ");
+                                orderUpdateMessage.append(humanReadableFieldName);
+                                
+                                if (differences.get(field).getOldValue() != null) {
+                                
+                                    orderUpdateMessage.append(" ändrades från ").append(differences.get(field).getOldValue());
+                                    
+                                } else {
+                                    
+                                    orderUpdateMessage.append("Sattes");
+                                    
+                                }
+                                
+                                orderUpdateMessage.append(" till ").append(differences.get(field).getNewValue()).append(". ");
 
                             }
 
@@ -230,10 +242,19 @@ public class GKSSynchronizationTask extends TimerTask {
 
                             for (RelationshipDifference difference : orderComparison.getRelationshipDifferences()) {
 
-                                preparedStatement = connection.prepareStatement("UPDATE order_user_relationship "
-                                        + "SET username = ?, "
-                                        + "fullname = ? "
-                                        + "WHERE ordernumber = ? AND relationship = ?");
+                                if (difference.getOldValue() == null) {
+
+                                    preparedStatement = connection.prepareStatement("INSERT INTO "
+                                            + "order_user_relationship(username, fullname, ordernumber, relationship) VALUES(?,?,?,?)");
+
+                                } else {
+
+                                    preparedStatement = connection.prepareStatement("UPDATE order_user_relationship "
+                                            + "SET username = ?, "
+                                            + "fullname = ? "
+                                            + "WHERE ordernumber = ? AND relationship = ?");
+
+                                }
 
                                 preparedStatement.setString(1, order.getRelationShip(difference.getType()).getUsername());
                                 preparedStatement.setString(2, order.getRelationShip(difference.getType()).getFullname());

@@ -43,7 +43,9 @@
             
             var fullname = '<%= userSession.get("fullname")%>';
             var username = '<%= userSession.getUsername()%>';
-                                                                        
+            var l9url = '<%= path%>l9';
+            var cometdSubscription;
+            
             $(window).unload(function() {
                 
                 cometd.reload();
@@ -61,15 +63,24 @@
                 });
                                                                 
                 cometd.init({
-                    url: '<%= path%>L9'
+                    url: l9url
                 });
                                 
-                cometd.subscribe("/" + $.cookie("CHANNELID"), function(bayeuxMessage) {
+                cometdSubscription = cometd.subscribe("/" + $.cookie("CHANNELID"), function(bayeuxMessage) {
                     
                     handleLevel9Message(bayeuxMessage);
                     
                 });
-                                
+                
+                cometd.addListener('/meta/connect', function(message)
+                {
+                    if (!message.successful) {
+                    
+                        logoutAction();
+                    
+                    }
+                });
+
                 $('.buttonset').buttonset();
                 
                 $('#sort-order-button').button({
@@ -92,7 +103,11 @@
                     
                 });
                 
-                $.getJSON('OrderServlet', {action:'get_orders_by_username', username:'<%= userSession.getUsername()%>'}, function(data) {
+                $('div').bind('dragenter dragover drop', function() {
+                    return false;
+                });
+                
+                $.getJSON('servlet/order', {action:'get_orders_by_username', username:'<%= userSession.getUsername()%>'}, function(data) {
 
                     $.each(data, function(i) {
             
@@ -143,7 +158,7 @@
             <input type="checkbox" id="sort-order-button"><label for="sort-order-button"></label>
             <ul id="sorting-menu" class="ui-menu ui-widget ui-widget-content ui-corner-all" role="menu" style="display:none">
                 <li class="ui-menu-item ui-corner-all" role="menuitem">
-                    <input class="sorting-choice ui-helper-hidden-accessible" type="radio" id="ordernumber-sort-button" name="sort" value="ordernumber" checked="checked"/>
+                    <input class="sorting-choice ui-helper-hidden-accessible" type="radio" id="ordernumber-sort-button" name="sort" value="ordernumber"/>
                     <label for="ordernumber-sort-button" class="ui-button ui-widget ui-button-text-icon-primary" aria-disabled="false">
                         <span id="ordernumber-sort-button-icon" class="ui-button-icon-primary ui-icon ui-icon-check"></span>
                         <span class="ui-button-text">Ordernummer</span>
@@ -157,7 +172,7 @@
                     </label>
                 </li>
                 <li class="ui-menu-item ui-corner-all" role="menuitem">
-                    <input class="sorting-choice ui-helper-hidden-accessible" type="radio" id="timestamp-sort-button" name="sort" value="timestamp"/>
+                    <input class="sorting-choice ui-helper-hidden-accessible" type="radio" id="timestamp-sort-button" name="sort" value="timestamp" checked="checked"/>
                     <label for="timestamp-sort-button" class="ui-button ui-widget ui-button-text-icon-primary" aria-disabled="false">
                         <span id="timestamp-sort-button-icon" class="ui-button-icon-primary ui-icon-check"></span>
                         <span class="ui-button-text">Senast uppdaterad</span>
@@ -202,11 +217,11 @@
         <div id="dropzone-info" style="width: 500px;" ></div>
         <div id="content-layer">
         </div>
-        <div id="notice-hover-detection-layer" onmouseover="handleMouseOverNoticeHoverDetectionLayer()" ondragenter="return false" ondragover="return false" ondrop="return false">
+        <div id="notice-hover-detection-layer" onmouseover="handleMouseOverNoticeHoverDetectionLayer()">
         </div>
-        <div id="notice-layer" class="ui-widget" onmouseover="handleMouseOverNoticeHoverDetectionLayer()" onmouseout="handleMouseOutNoticeHoverDetectionLayer()" ondragenter="return false" ondragover="return false" ondrop="return false" style="display: none">
+        <div id="notice-layer" class="ui-widget" onmouseover="handleMouseOverNoticeHoverDetectionLayer()" onmouseout="handleMouseOutNoticeHoverDetectionLayer()" style="display: none">
         </div>
-        <div id="dialog-layer" ondragenter="return false" ondragover="return false" ondrop="return false">
+        <div id="dialog-layer">
         </div>
     </body>
 </html>

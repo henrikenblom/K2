@@ -22,19 +22,27 @@
         <servlet-class>com.imprima.k2.communication.UniqueUploadSessionIdGenerator</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>OrderServlet</servlet-name>
-        <url-pattern>/OrderServlet</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
         <servlet-name>UploadServlet</servlet-name>
-        <url-pattern>/UploadServlet</url-pattern>
+        <url-pattern>/servlet/upload</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>UniqueUploadSessionIdGenerator</servlet-name>
-        <url-pattern>/UniqueUploadSessionIdGenerator</url-pattern>
+        <url-pattern>/servlet/unique_id</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>HouseKeeper</servlet-name>
+        <url-pattern>/servlet/housekeeper</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>OrderServlet</servlet-name>
+        <url-pattern>/servlet/order</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>L9Servlet</servlet-name>
+        <url-pattern>/l9/*</url-pattern>
     </servlet-mapping>
     <session-config>
-        <session-timeout>60</session-timeout>
+        <session-timeout>1</session-timeout>
     </session-config>
     <filter>
         <filter-name>SessionIdFilter</filter-name>
@@ -64,21 +72,16 @@
         <servlet-name>OrderServlet</servlet-name>
         <servlet-class>com.imprima.k2.communication.OrderServlet</servlet-class>
     </servlet>
-    <servlet-mapping>
-        <servlet-name>L9Servlet</servlet-name>
-        <url-pattern>/L9/*</url-pattern>
-    </servlet-mapping>
-    <servlet-mapping>
-        <servlet-name>HouseKeeper</servlet-name>
-        <url-pattern>/HouseKeeper</url-pattern>
-    </servlet-mapping>
     <security-constraint>
         <web-resource-collection>
-            <web-resource-name>Wildcard means whole app requires authentication</web-resource-name>
+            <web-resource-name>Servlets</web-resource-name>
+            <description/>
+            <url-pattern>/servlet/*</url-pattern>
+        </web-resource-collection>
+        <web-resource-collection>
+            <web-resource-name>Documents</web-resource-name>
+            <description/>
             <url-pattern>*.jsp</url-pattern>
-            <url-pattern>/OrderServlet</url-pattern>
-            <http-method>GET</http-method>
-            <http-method>POST</http-method>
         </web-resource-collection>
         <auth-constraint>
             <role-name>user</role-name>
