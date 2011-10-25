@@ -130,18 +130,27 @@ public class DateUtility {
 
         long age = 0l;
         
-        GregorianCalendar startDate = new GregorianCalendar();
-        startDate.setTime(from);
-        
+        GregorianCalendar startDate = new GregorianCalendar();        
         GregorianCalendar endDate = new GregorianCalendar();
-        endDate.setTime(new Date());
+        
+        GregorianCalendar now = new GregorianCalendar();
+        now.setTime(new Date());
+        
+        GregorianCalendar then = new GregorianCalendar();
+        then.setTime(from);
+        
+        endDate.set(now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DATE));
+        startDate.set(then.get(Calendar.YEAR), then.get(Calendar.MONTH), then.get(Calendar.DATE));
+        
+        now = null;
+        then = null;
         
         if (System.currentTimeMillis() - startDate.getTime().getTime() > 0) {
          
             age = daysBetween(startDate, endDate);
             
         }
-        
+
         return age;
 
     }
@@ -158,7 +167,6 @@ public class DateUtility {
 
         //**year optimization**
         while (((y2 - y1) * 12 + (m2 - m1)) > 12) {
-
             //move to Jan 01
             if (sDate.get(Calendar.MONTH) == Calendar.JANUARY
                     && sDate.get(Calendar.DAY_OF_MONTH) == sDate.getActualMinimum(Calendar.DAY_OF_MONTH)) {

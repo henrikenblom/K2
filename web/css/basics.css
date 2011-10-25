@@ -181,7 +181,7 @@ li label {
     overflow: auto;
 }
 
-.ordernumber, .ordername, .sales_fullname, .projectmanager_fullname, .updated {
+.ordernumber, .name, .sales_fullname, .projectmanager_fullname, .updated {
     display: inline;
     white-space: nowrap;
 }
@@ -222,4 +222,9 @@ li label {
 
 .fileupload {
     display: none;
+}
+
+.current-file-upload {
+    font-weight: normal;
+    color: #767476;
 }

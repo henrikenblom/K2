@@ -204,18 +204,10 @@ function generateOrderListEntry(orderData) {
     ordernumber.html(orderData.ordernumber);
     ordernumber.addClass('ordernumber');
                 
-    var ordername = $('<div>');
-    
-    var ordernameString = orderData.name;
-    
-    if (ordernameString.length > 35) {
+    var name = $('<div>');
         
-        ordernameString = ordernameString.substring(0,33) + "\u2026";
-        
-    }
-    
-    ordername.html(ordernameString);
-    ordername.addClass('ordername');
+    name.html(shortenString(orderData.name, 33, 35));
+    name.addClass('name');
     
     orderListEntry.attr('title', orderData.name);
     
@@ -249,7 +241,7 @@ function generateOrderListEntry(orderData) {
     
     orderListEntry.append(timestamp)
     .append(ordernumber)
-    .append(ordername)
+    .append(name)
     .append(updated)
     .append('<br>')
     .append('<br>')
@@ -277,12 +269,13 @@ function generateOrderListEntry(orderData) {
 function makeFileuploadDropZone(dropZone, ordernumber) {
     
     var identifier = getUniqueIdFromServer();
+    var uploadingString = 'Laddar upp ';
 
     $('body').append('<div id=\'fileupload-' + identifier + '\' class=\'fileupload\'></div>');
     
     $('#fileupload-' + identifier).fileupload({
         type: 'POST',
-        url: 'UploadServlet',
+        url: 'servlet/upload',
         singleFileUploads: false,
         dropZone: dropZone,
         namespace: identifier,
@@ -314,6 +307,16 @@ function makeFileuploadDropZone(dropZone, ordernumber) {
     .bind('fileuploaddrop', function (e, data) {
         
         dropZone.removeClass('ui-state-hover');
+               
+        $.each(data.files, function(i, v) {
+       
+            uploadingString += v.name;
+            
+            if (i != (data.files.length - 1)) {
+                 uploadingString += ', ';
+            }
+       
+        });
         
     }).bind('fileuploadstart', function (e) {
          
@@ -323,7 +326,14 @@ function makeFileuploadDropZone(dropZone, ordernumber) {
             value: 0
         });
         
-        $('#order-list-entry-' + ordernumber).append(progressbar);
+        var currentFileUpload = $('<div>').addClass('current-file-upload');
+        currentFileUpload.attr('id', 'current-file-upload-' + identifier);
+        currentFileUpload.attr('title', uploadingString);
+        currentFileUpload.html(shortenString(uploadingString, 51, 49));
+        
+        $('#order-list-entry-' + ordernumber)
+        .append(progressbar)
+        .append(currentFileUpload);
         
         makeFileuploadDropZone(dropZone, ordernumber);
                 
@@ -335,8 +345,12 @@ function makeFileuploadDropZone(dropZone, ordernumber) {
             $('#progessbar-' + identifier).remove();
         });
         
+        $('#current-file-upload-' + identifier).fadeOut(effectDurationDenominator, function() {
+            $('#current-file-upload-' + identifier).remove();
+        });
+        
     })
-    .bind('fileuploadprogress', function (e, data) {
+    .bind('fileuploadprogressall', function (e, data) {
         
         $('#progessbar-' + identifier).progressbar('value' , parseInt(data.loaded / data.total * 100, 10));
         
@@ -426,7 +440,7 @@ function updateOrderdata(orderData) {
             
             $('#order-list-entry-' + orderData.ordernumber + ' .' + key).fadeOut(effectDurationDenominator, function() {
             
-                $('#order-list-entry-' + orderData.ordernumber + ' .' + key).html(value);
+                $('#order-list-entry-' + orderData.ordernumber + ' .' + key).html(shortenString(value, 33, 35));
                 $('#order-list-entry-' + orderData.ordernumber + ' .' + key).addClass("ui-state-highlight");
                 $('#order-list-entry-' + orderData.ordernumber + ' .' + key).fadeIn(effectDurationDenominator, function() {
                 
@@ -582,5 +596,25 @@ function showUserSettingsDialog() {
     
     $('#userSettingsDialog').dialog('open');
     $('#name').focus();
+    
+}
+
+function shortenString(string, length, limit) {
+    
+    var retval = string;
+    
+    if (!limit) {
+        
+        limit = length;
+        
+    }
+    
+    if (string.length > limit) {
+    
+        retval = string.substring(0,length) + "\u2026";
+
+    }
+    
+    return retval;
     
 }
