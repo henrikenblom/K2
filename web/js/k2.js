@@ -8,7 +8,7 @@ var name,email;
 var cometd = $.cometd;
 var sortingcaption = {
     "ordernumber":"ordernummer",
-    "ordername":"ordernamn", 
+    "name":"ordernamn", 
     "timestamp":"aktualitet"
 };
 
@@ -525,9 +525,9 @@ function showUserSettingsDialog() {
         
     }
                 
-    if ($.cookie("name") != null || $.cookie("email") != null) {
+    if (localStorage.getItem("name") != null || localStorage.getItem("email") != null) {
                     
-        $('#userSettingsDialogNoCookie').hide();
+        $('#userSettingsDialogNoData').hide();
         $('#userSettingsDialogChangeData').show();
                     
         $('#name').val(name);
@@ -550,7 +550,7 @@ function showUserSettingsDialog() {
         },
         close: function(e, ui) {
                         
-            $('#userSettingsDialogNoCookie').hide();
+            $('#userSettingsDialogNoData').hide();
             $('#userSettingsDialogChangeData').show();
                         
         },
@@ -575,14 +575,8 @@ function showUserSettingsDialog() {
 
                 if ( bValid ) {
                                 
-                    $.cookie("name", $('#name').val(), {
-                        path: '/', 
-                        expires: 3650
-                    });
-                    $.cookie("email", $('#email').val(), {
-                        path: '/', 
-                        expires: 3650
-                    });
+                    localStorage.setItem("name", $('#name').val());
+                    localStorage.setItem("email", $('#email').val());
 
                     name = $('#name').val();
                     email = $('#email').val();

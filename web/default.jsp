@@ -19,6 +19,8 @@
         <script type="text/javascript">            
             var fullname = '<%= userSession.get("fullname")%>';
             var username = '<%= userSession.getUsername()%>';
+            var l9url = '<%= path%>l9';
+            var cometdSubscription;
         </script>
 
         <link rel="stylesheet" type="text/css" href="css/imprima-theme/jquery-ui-1.8.16.custom.css">
@@ -40,12 +42,7 @@
         <script type="text/javascript" src="js/settingsmenus.js"></script>
 
         <script type="text/javascript">
-            
-            var fullname = '<%= userSession.get("fullname")%>';
-            var username = '<%= userSession.getUsername()%>';
-            var l9url = '<%= path%>l9';
-            var cometdSubscription;
-            
+                        
             $(window).unload(function() {
                 
                 cometd.reload();
@@ -133,19 +130,19 @@
                     
                 });
                 
-                if ($.cookie("name") == null || $.cookie("email") == null) {
+                if (localStorage.getItem("name") == null || localStorage.getItem("email") == null) {
                     
                     showUserSettingsDialog();
                     
                 } else {
                     
-                    name = $.cookie("name");
-                    email = $.cookie("email");
+                    name = localStorage.getItem("name");
+                    email = localStorage.getItem("email");
                     
                 }
                 
                 $("#orderview-info-button").button( { icons: {primary:'ui-icon-document'} } );
-                $("#orderview-planning-button").button( { icons: {primary:'ui-icon-calendar'} } );
+                $("#orderview-planning-button").button( { icons: {primary:'ui-icon-clock'} } );
                 $("#orderview-webproof-button").button( { icons: {primary:'ui-icon-image'} } );
                                                 
             });
@@ -165,7 +162,7 @@
                     </label>
                 </li>
                 <li class="ui-menu-item ui-corner-all" role="menuitem">
-                    <input class="sorting-choice ui-helper-hidden-accessible" type="radio" id="ordername-sort-button" name="sort" value="ordername"/>
+                    <input class="sorting-choice ui-helper-hidden-accessible" type="radio" id="ordername-sort-button" name="sort" value="name"/>
                     <label for="ordername-sort-button" class="ui-button ui-widget ui-button-text-icon-primary" aria-disabled="false">
                         <span id="ordername-sort-button-icon" class="ui-button-icon-primary ui-icon-check"></span>
                         <span class="ui-button-text">Ordernamn</span>

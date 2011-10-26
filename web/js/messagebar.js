@@ -1,9 +1,9 @@
     
 function initMessageBar() {
         
-    if ($.cookie("messagebar") != null) {
+    if (localStorage.getItem("messagebar")) {
             
-        $('#notice-layer').html($.cookie("messagebar"));
+        $('#notice-layer').html(localStorage.getItem("messagebar"));
             
     }
         
@@ -11,13 +11,8 @@ function initMessageBar() {
     
 function clearMessageBar() {
         
-    //$('#notice-layer').html("");
-        
-    $.cookie("messagebar", null, {
-        path: '/', 
-        expires: -1
-    });
-        
+    localStorage.removeItem("messagebar");
+    
 }
     
 function showTextMessage(message, timestring) {
@@ -28,11 +23,8 @@ function showTextMessage(message, timestring) {
 
         $('#notice-layer').html(completeText);
         
-        $.cookie("messagebar", completeText, {
-            path: '/', 
-            expires: 1
-        });
-        
+        localStorage.setItem("messagebar", completeText);
+
         animateShowNoticeLayer();
         
     }
