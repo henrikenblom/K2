@@ -83,6 +83,11 @@
             <description/>
             <url-pattern>*.jsp</url-pattern>
         </web-resource-collection>
+        <web-resource-collection>
+            <web-resource-name>Atoms</web-resource-name>
+            <description/>
+            <url-pattern>/atoms/*</url-pattern>
+        </web-resource-collection>
         <auth-constraint>
             <role-name>user</role-name>
             <role-name>system_user</role-name>

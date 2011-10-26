@@ -72,6 +72,9 @@ function doOrderListSort() {
     hideSortingMenu();
     
     $('#sort-order-button').button('option', 'label', 'Sortera efter ' + sortingcaption[$('input[name$="sort"]:checked').val()]);
+    
+    localStorage.setItem('sort', $('input[name$="sort"]:checked').val());
+    localStorage.setItem('order', $('input[name$="order"]:checked').val());
                     
 }
 
@@ -540,7 +543,7 @@ function showUserSettingsDialog() {
         open: function(e, ui) {
                         
             $(".ui-dialog-titlebar-close").hide();
-                        
+                         
             $(this).keypress(function(e) {
                 if (e.keyCode == 13) {
                     $('.ui-dialog-buttonpane button:last').trigger('click');

@@ -104,6 +104,18 @@
                     return false;
                 });
                 
+                if (localStorage.getItem('sort') != null) {
+                    
+                    $('input[name$="sort"][value="' + localStorage.getItem('sort') + '"]').attr('checked', 'checked');
+                    
+                }
+                
+                if (localStorage.getItem('order') != null) {
+                    
+                    $('input[name$="order"][value="' + localStorage.getItem('order') + '"]').attr('checked', 'checked');
+                    
+                }
+                
                 $.getJSON('servlet/order', {action:'get_orders_by_username', username:'<%= userSession.getUsername()%>'}, function(data) {
 
                     $.each(data, function(i) {
@@ -111,7 +123,7 @@
                         addOrder(data[i]);
                      
                     });
-                    
+                                        
                     doOrderListSort();
                     
                     $('input.sorting-choice').change(function() {
@@ -162,9 +174,9 @@
                     </label>
                 </li>
                 <li class="ui-menu-item ui-corner-all" role="menuitem">
-                    <input class="sorting-choice ui-helper-hidden-accessible" type="radio" id="ordername-sort-button" name="sort" value="name"/>
-                    <label for="ordername-sort-button" class="ui-button ui-widget ui-button-text-icon-primary" aria-disabled="false">
-                        <span id="ordername-sort-button-icon" class="ui-button-icon-primary ui-icon-check"></span>
+                    <input class="sorting-choice ui-helper-hidden-accessible" type="radio" id="name-sort-button" name="sort" value="name"/>
+                    <label for="name-sort-button" class="ui-button ui-widget ui-button-text-icon-primary" aria-disabled="false">
+                        <span id="name-sort-button-icon" class="ui-button-icon-primary ui-icon-check"></span>
                         <span class="ui-button-text">Ordernamn</span>
                     </label>
                 </li>
