@@ -22,13 +22,18 @@ import java.util.logging.Logger;
 public final class ProductionDatastore {
 
     private static ProductionDatastore instance;
+    private HashMap<Integer, ProductionPlan> productionPlanMap;
     private HashMap<Integer, Order> ordercacheMap;
     private HashMap<Integer, Timestamp> ordercacheTimestampMap = new HashMap<Integer, Timestamp>();
+    private HashSet<Integer> productionOrdernumbers = new HashSet<Integer>();
     private CacheDBUtility cacheDBUtility = new CacheDBUtility();
+    private Timestamp lowestProductionOrderTimestamp = new Timestamp(System.currentTimeMillis());
 
     protected ProductionDatastore() {
 
+        cacheDBUtility.createTables();
         updateOrderCache();
+        updateProductionPlanCache();
 
     }
 
@@ -48,22 +53,66 @@ public final class ProductionDatastore {
 
         ordercacheTimestampMap.clear();
 
-        for (Integer ordernumber : ordercacheMap.keySet()) {
+        for (Order order : ordercacheMap.values()) {
 
-            ordercacheTimestampMap.put(ordernumber, ordercacheMap.get(ordernumber).getUpdated());
+            ordercacheTimestampMap.put(order.getOrdernumber(),
+                    ordercacheMap.get(order.getOrdernumber()).getUpdated());
+                        
+            if (order.isProductionOrder()) {
+                
+                productionOrdernumbers.add(order.getOrdernumber());
+                
+                lowestProductionOrderTimestamp = 
+                        order.getOrderdate().getTime() < lowestProductionOrderTimestamp.getTime()
+                        ? order.getOrderdate() : lowestProductionOrderTimestamp;
+                
+            }
 
         }
 
     }
     
+    public void updateProductionPlanCache() {
+        
+        productionPlanMap = cacheDBUtility.fetchProductionPlanMap();
+        
+    }
+
+    public boolean containsOrder(Integer ordernumber) {
+        
+        return ordercacheMap.containsKey(ordernumber);
+        
+    }
+    
+    public Set<Integer> getProductionOrdernumbers() {
+        
+        if (productionOrdernumbers.isEmpty()) {
+            
+            updateOrderCache();
+            
+        }
+        
+        return productionOrdernumbers;
+        
+    }
+    
     public Order getOrder(Integer ordernumber) {
+
+        Order order = ordercacheMap.get(ordernumber);
         
-        return ordercacheMap.get(ordernumber);
+        if (order == null) {
+            
+            updateOrderCache();
+            order = ordercacheMap.get(ordernumber);
+            
+        }
         
-    } 
+        return order;
+
+    }
 
     public synchronized Set<String> getUsernameSetByOrdernumer(int ordernumber) {
-        
+
         Set<String> retval = new HashSet<String>();
 
         Connection connection = null;
@@ -114,9 +163,9 @@ public final class ProductionDatastore {
         }
 
         return retval;
-        
+
     }
-    
+
     public synchronized ArrayList<Order> getOrderListByUsername(String username) {
 
         ArrayList<Order> retval = new ArrayList<Order>();
@@ -174,6 +223,10 @@ public final class ProductionDatastore {
 
         return retval;
 
+    }
+
+    public Timestamp getLowestProductionOrderTimestamp() {
+        return lowestProductionOrderTimestamp;
     }
 
     private Order fetchOrder(int ordernumber, Timestamp updated, Connection cacheConnection) {

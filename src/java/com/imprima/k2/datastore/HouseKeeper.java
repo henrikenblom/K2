@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class HouseKeeper extends HttpServlet {
 
-    private Timer timer = new Timer();
+    private Timer timer = new Timer("HouseKeeperTimer");
     private int userDBSyncInterval = 10000;
     private int preemptiveCachingInterval = 7000;
     private GKSSynchronizationTask preemptiveCachingTask;

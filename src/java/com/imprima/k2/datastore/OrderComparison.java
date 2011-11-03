@@ -12,12 +12,15 @@ public class OrderComparison {
 
     private HashMap<String, Difference> differences = new HashMap<String, Difference>();
     private boolean relationshipsChanged = false;
+    private Integer ordernumber;
 
     public OrderComparison() {
     }
 
     public OrderComparison(Order oldOrder, Order newOrder) {
 
+        ordernumber = oldOrder.getOrdernumber();
+        
         compareStaticFields(oldOrder, newOrder);
         compareRelationShips(oldOrder, newOrder);
 
@@ -29,6 +32,12 @@ public class OrderComparison {
 
     }
 
+    public Integer getOrdernumber() {
+        
+        return ordernumber;
+       
+    }
+    
     public HashMap<String, Difference> getDifferences() {
 
         return differences;

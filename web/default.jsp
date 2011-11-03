@@ -21,10 +21,13 @@
             var username = '<%= userSession.getUsername()%>';
             var l9url = '<%= path%>l9';
             var cometdSubscription;
+            var selectedOrdernumber;
         </script>
 
         <link rel="stylesheet" type="text/css" href="css/imprima-theme/jquery-ui-1.8.16.custom.css">
         <link rel="stylesheet" type="text/css" href="css/basics.css">
+        <link rel="stylesheet" type="text/css" href="css/gantt.css">
+
         <script type="text/javascript" src="js/org/cometd.js"></script>
         <script type="text/javascript" src="js/org/cometd/ReloadExtension.js"></script>
         <script type="text/javascript" src="js/json2.js"></script>
@@ -37,9 +40,11 @@
         <script type="text/javascript" src="js/jquery/jquery.tinysort.min.js"></script>
         <script type="text/javascript" src="js/jquery/jquery.scrollTo-min.js"></script>
         <script type="text/javascript" src="js/jquery/fileupload/jquery.fileupload.js"></script>
+        <script type="text/javascript" src="js/jquery/jquery.fn.gantt.he.js"></script>
         <script type="text/javascript" src="js/k2.js"></script>
         <script type="text/javascript" src="js/messagebar.js"></script>
         <script type="text/javascript" src="js/settingsmenus.js"></script>
+        <script type="text/javascript" src="js/planningchart.js"></script>
 
         <script type="text/javascript">
                         
@@ -134,6 +139,15 @@
                    
                 });
                 
+                $('input.orderview-choice').change(function() {
+    
+                    var target = $('#order-details-entry');
+    
+                    setOrderDetailsView(selectedOrdernumber, target);
+    
+                });
+
+                
                 adjustViewPort();
                 
                 $(document).bind('keydown keypress', function (event) {
@@ -205,9 +219,9 @@
                 </li>
             </ul>
             <div class="buttonset" id="order-view-menu" style="display: none">
-                <input type="radio" name="orderview" id="orderview-info-button" checked="checked"/><label for="orderview-info-button">Information</label>
-                <input type="radio" name="orderview" id="orderview-planning-button"/><label for="orderview-planning-button">Planering</label>
-                <input type="radio" name="orderview" id="orderview-webproof-button"/><label for="orderview-webproof-button">Webbkorrektur</label>
+                <input type="radio" class="orderview-choice" name="orderview" value="information" id="orderview-info-button" checked="checked"/><label for="orderview-info-button">Information</label>
+                <input type="radio" class="orderview-choice" name="orderview" value="planning" id="orderview-planning-button"/><label for="orderview-planning-button">Planering</label>
+                <input type="radio" class="orderview-choice" name="orderview" value="webproof" id="orderview-webproof-button"/><label for="orderview-webproof-button">Webbkorrektur</label>
             </div>
         </div>
         <div id="menu-layer">

@@ -20,7 +20,11 @@ public final class Order extends HashMap<String, Object> {
     private HashMap<Integer, OrderUserRelationship> relationships = new HashMap<Integer, OrderUserRelationship>();
     private ArrayList<String> relationshipUsernames = new ArrayList<String>();
     private Timestamp updated = new Timestamp(System.currentTimeMillis());
+    private Timestamp orderdate = null;
     private DateUtility dateUtility = DateUtility.getInstance();
+    private boolean productionOrder = false;
+    private ProductionPlan productionPlan;
+    private Integer cacheDBId;
 
     public Order(Integer ordernumber, String name) {
 
@@ -33,6 +37,21 @@ public final class Order extends HashMap<String, Object> {
         
         this(ordernumber, name);
         setUpdated(updated);
+        
+    }
+    
+    public Order(Integer ordernumber, String name, Timestamp updated, boolean productionOrder, Timestamp orderdate) {
+        
+        this(ordernumber, name, updated);
+        setProductionOrder(productionOrder);
+        setOrderdate(orderdate);
+        
+    }
+    
+    public Order(Integer ordernumber, String name, Timestamp updated, boolean productionOrder, Timestamp orderdate, Integer cacheDBId) {
+        
+        this(ordernumber, name, updated, productionOrder, orderdate);
+        setCacheDBId(cacheDBId);
         
     }
     
@@ -64,6 +83,22 @@ public final class Order extends HashMap<String, Object> {
         
         return (String) get("name");
         
+    }
+
+    public Timestamp getOrderdate() {
+        return orderdate;
+    }
+
+    public void setOrderdate(Timestamp orderdate) {
+        this.orderdate = orderdate;
+    }
+
+    public boolean isProductionOrder() {
+        return productionOrder;
+    }
+
+    public void setProductionOrder(boolean productionOrder) {
+        this.productionOrder = productionOrder;
     }
     
     public ArrayList<String> getRelationshipUsernames() {
@@ -101,6 +136,22 @@ public final class Order extends HashMap<String, Object> {
 
     public void setRelationships(HashMap<Integer, OrderUserRelationship> relationships) {
         this.relationships = relationships;
+    }
+
+    public ProductionPlan getProductionPlan() {
+        return productionPlan;
+    }
+
+    public void setProductionPlan(ProductionPlan productionPlan) {
+        this.productionPlan = productionPlan;
+    }
+
+    public Integer getCacheDBId() {
+        return cacheDBId;
+    }
+
+    public void setCacheDBId(Integer cacheDBId) {
+        this.cacheDBId = cacheDBId;
     }
     
     public HashMap<String, String> toMap(Locale locale) {

@@ -87,107 +87,61 @@ function adjustViewPort() {
     
     $('#content-layer').width($(window).width() - $('#order-list-layer').width());
 
-    $('.order-details-entry').height($('#content-layer').height() - 136);
+    //$('#order-details-entry').height($('#content-layer').height() - 136);
+    
+    $('div.fn-gantt > div.fn-content > div.rightPanel').width($('#content-layer').width() - 310);
 
 }
 
-function showOrderDetails(ordernumber) {
-    
-    if (ordernumber != null && ordernumber.length > 0) {
-    
-        $('.order-details-entry').fadeOut(effectDurationDenominator);
-    
-        $('.order-list-entry').removeClass('ui-state-active');
-    
-        $('#order-list-entry-' + ordernumber).addClass('ui-state-active');
+function showOrderInfo(ordernumber, target) {
         
-        if (!isScrolledIntoView($('#order-list-entry-' + ordernumber))) {
-                        
-            $('#order-list-layer').scrollTo($('#order-list-entry-' + ordernumber), effectDurationDenominator);
+    $.getJSON('servlet/order', {
         
-        }
+        action:'get_order_by_ordernumber', 
+        ordernumber: ordernumber
         
-        $.getJSON('servlet/order', {
-        
-            action:'get_order_by_ordernumber', 
-            ordernumber: ordernumber
-        
-        }, function(orderData) {
-        
-            var orderdetails = $('<div>');
-            orderdetails.attr("style", "display: none");
-            orderdetails.addClass('order-details-entry');
-            orderdetails.addClass('ui-widget');
-            orderdetails.attr('id', 'order-details-entry-' + orderData.ordernumber);
+    }, function(orderData) {
             
-            var orderdetailsHeader = $('<div>').addClass('header');
+        var orderdetailsHeader = $('<div>').addClass('header');
         
-            var ordernumber = $('<h1>');
-            ordernumber.html(orderData.ordernumber);
-            ordernumber.addClass('ordernumber');
+        var ordernumber = $('<h1>');
+        ordernumber.html(orderData.ordernumber);
+        ordernumber.addClass('ordernumber');
         
-            var ordername = $('<h1>');
-            ordername.html(orderData.name);
-            ordername.addClass('ordername');
+        var ordername = $('<h1>');
+        ordername.html(orderData.name);
+        ordername.addClass('ordername');
         
-            orderdetailsHeader.append(ordernumber)
-            .append(ordername);
+        orderdetailsHeader.append(ordernumber)
+        .append(ordername);
         
-            var updated = $('<div>');
-            var labelUpdated = $('<label>').html('Senast uppdaterad');
+        var updated = $('<div>');
+        var labelUpdated = $('<label>').html('Senast uppdaterad');
         
-            updated.append(labelUpdated).append(orderData.updated);
+        updated.append(labelUpdated).append(orderData.updated);
         
-            orderdetails.append(orderdetailsHeader)
-            .append(updated);
+        target.html(orderdetailsHeader);
+        target.append(updated);
                     
-            makeFileuploadDropZone(orderdetails, orderData.ordernumber);        
-        
-            $('#content-layer').append(orderdetails);            
-            $('#content-layer').click(function() {
-            
-                $('#content-layer').unbind('click');
+        makeFileuploadDropZone(target, orderData.ordernumber);        
                 
-                closeOrderdetails(orderData.ordernumber);
+    });
             
-            });
-        
-            orderdetails.click(function() {
-            
-                return false;
-            
-            });
-            
-            $('#order-view-menu').fadeIn(effectDurationDenominator);
-        
-            adjustViewPort();
-        
-            orderdetails.fadeIn(effectDurationDenominator);
-        
-        });
-    
-    }
-        
 }
 
 function closeOrderdetails(ordernumber) {
     
-    var selector = '.order-details-entry';
     
-    if (ordernumber) {
-        
-        selector = '#order-details-entry-' + ordernumber;
-        
-    }
-    
-    $(selector).fadeOut(effectDurationDenominator, function() {
+    $('#order-details-entry').fadeOut(effectDurationDenominator, function() {
                 
-        $(selector).remove();
+        $('#order-details-entry').remove();
         $('.order-list-entry').removeClass('ui-state-active');
                     
         $('#order-view-menu').fadeOut(effectDurationDenominator);
                 
     });
+    
+    selectedOrdernumber = null;
     
 }
 
@@ -209,7 +163,7 @@ function generateOrderListEntry(orderData) {
                 
     var name = $('<div>');
         
-    name.html(shortenString(orderData.name, 33, 35));
+    name.html(truncateString(orderData.name, 33, 35));
     name.addClass('name');
     
     orderListEntry.attr('title', orderData.name);
@@ -269,6 +223,69 @@ function generateOrderListEntry(orderData) {
                 
 }
 
+function showOrderDetails(ordernumber) {
+         
+    selectedOrdernumber = ordernumber;
+    
+    $('#order-details-entry').fadeOut(effectDurationDenominator);
+    
+    $('.order-list-entry').removeClass('ui-state-active');
+    
+    $('#order-list-entry-' + ordernumber).addClass('ui-state-active');
+        
+    if (!isScrolledIntoView($('#order-list-entry-' + ordernumber))) {
+                        
+        $('#order-list-layer').scrollTo($('#order-list-entry-' + ordernumber), effectDurationDenominator);
+        
+    }
+        
+    var orderdetails = $('<div>');
+    orderdetails.attr('style', 'display: none');
+    orderdetails.addClass('order-details-entry');
+    orderdetails.addClass('ui-widget');
+    orderdetails.attr('id', 'order-details-entry');
+        
+    $('#content-layer').html(orderdetails);            
+    $('#content-layer').click(function() {
+            
+        $('#content-layer').unbind('click');
+                
+        closeOrderdetails(ordernumber);
+            
+    });
+        
+    orderdetails.click(function() {
+            
+        return false;
+            
+    });
+            
+    $('#order-view-menu').fadeIn(effectDurationDenominator);
+    
+    setOrderDetailsView(ordernumber, orderdetails);
+    
+    orderdetails.fadeIn(effectDurationDenominator);
+         
+}
+
+function setOrderDetailsView(ordernumber, target) {
+    
+    var orderview = $('input[name$="orderview"]:checked').val();
+    
+    if (orderview == 'information') {
+            
+        showOrderInfo(ordernumber, target);
+            
+    } else if (orderview == 'planning') {
+            
+        showPlanningChart(ordernumber, target);
+            
+    }
+
+    adjustViewPort();
+    
+}
+
 function makeFileuploadDropZone(dropZone, ordernumber) {
     
     var identifier = getUniqueIdFromServer();
@@ -316,7 +333,7 @@ function makeFileuploadDropZone(dropZone, ordernumber) {
             uploadingString += v.name;
             
             if (i != (data.files.length - 1)) {
-                 uploadingString += ', ';
+                uploadingString += ', ';
             }
        
         });
@@ -332,7 +349,7 @@ function makeFileuploadDropZone(dropZone, ordernumber) {
         var currentFileUpload = $('<div>').addClass('current-file-upload');
         currentFileUpload.attr('id', 'current-file-upload-' + identifier);
         currentFileUpload.attr('title', uploadingString);
-        currentFileUpload.html(shortenString(uploadingString, 51, 49));
+        currentFileUpload.html(truncateString(uploadingString, 51, 49));
         
         $('#order-list-entry-' + ordernumber)
         .append(progressbar)
@@ -369,7 +386,7 @@ function makeFileuploadDropZone(dropZone, ordernumber) {
 
 function getUniqueIdFromServer() {
     
-    var id = 0;
+    var id;
     
     $.ajax({
         async: false,
@@ -443,7 +460,7 @@ function updateOrderdata(orderData) {
             
             $('#order-list-entry-' + orderData.ordernumber + ' .' + key).fadeOut(effectDurationDenominator, function() {
             
-                $('#order-list-entry-' + orderData.ordernumber + ' .' + key).html(shortenString(value, 33, 35));
+                $('#order-list-entry-' + orderData.ordernumber + ' .' + key).html(truncateString(value, 33, 35));
                 $('#order-list-entry-' + orderData.ordernumber + ' .' + key).addClass("ui-state-highlight");
                 $('#order-list-entry-' + orderData.ordernumber + ' .' + key).fadeIn(effectDurationDenominator, function() {
                 
@@ -596,7 +613,7 @@ function showUserSettingsDialog() {
     
 }
 
-function shortenString(string, length, limit) {
+function truncateString(string, length, limit) {
     
     var retval = string;
     

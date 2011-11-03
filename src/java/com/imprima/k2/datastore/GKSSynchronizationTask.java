@@ -1,6 +1,5 @@
 package com.imprima.k2.datastore;
 
-import com.imprima.kesession.UserSession;
 import com.imprima.kesession.UserSessionController;
 import com.imprima.level9.AddOrderMessage;
 import com.imprima.level9.OrderRemovalMessage;
@@ -10,8 +9,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.ResourceBundle;
@@ -34,11 +34,9 @@ public class GKSSynchronizationTask extends TimerTask {
     private HashMap<Integer, String[]> userIdMap;
     private HashMap<Integer, String[]> clientIdMap;
     private ResourceBundle orderfields = ResourceBundle.getBundle("orderfields");
+    private ProductionPlanUtility productionPlanUtility = ProductionPlanUtility.getInstance();
 
-    public GKSSynchronizationTask() throws SQLException, ClassNotFoundException {
-
-        cacheDBUtility.createTables();
-
+    public GKSSynchronizationTask() {
     }
 
     @Override
@@ -48,10 +46,11 @@ public class GKSSynchronizationTask extends TimerTask {
         clientIdMap = cacheDBUtility.fetchClientIdMap();
 
         putOrders(fetchActiveOrders());
+        putProductionPlans(fetchProductionPlans());
 
     }
 
-    private ArrayList<Order> fetchActiveOrders() {
+    private Collection<Order> fetchActiveOrders() {
 
         ArrayList<Order> retval = new ArrayList<Order>();
         Connection connection = null;
@@ -65,7 +64,7 @@ public class GKSSynchronizationTask extends TimerTask {
                     + "oo.iNummer ordernumber, oo.cBenämning name, oo.rFöretagID client_id, "
                     + "oo.rPersonalIDSäljare salesperson_id, oo.rPersonalIDHandläggare projectmanager_id, "
                     + "oo.dSenastUppdaterad updated, oo.dLeveransdatumUtlovad, "
-                    + "oo.dLeveransdatumFaktisk "
+                    + "oo.dDatum orderdate "
                     + "FROM Gks.dbo.OffertOrder oo WHERE "
                     + "(oo.iNummer > 200000 OR oo.iNummer < 100000) "
                     + "AND oo.iTyp != 21 AND oo.dFaktureradDatum IS NULL AND "
@@ -73,7 +72,11 @@ public class GKSSynchronizationTask extends TimerTask {
 
             while (resultSet.next()) {
 
-                Order order = new Order(resultSet.getInt("ordernumber"), resultSet.getString("name"), resultSet.getTimestamp("updated"));
+                Order order = new Order(resultSet.getInt("ordernumber"),
+                        resultSet.getString("name"),
+                        resultSet.getTimestamp("updated"),
+                        resultSet.getInt("ordernumber") > 200000,
+                        resultSet.getTimestamp("orderdate"));
 
                 String[] salesData = getUserDataById(resultSet.getInt("salesperson_id"));
                 String[] projectmanagerData = getUserDataById(resultSet.getInt("projectmanager_id"));
@@ -134,19 +137,349 @@ public class GKSSynchronizationTask extends TimerTask {
 
     }
 
-    private void putOrders(ArrayList<Order> orderList) {
+    private Collection<ProductionPlan> fetchProductionPlans() {
+
+        Connection connection = null;
+        HashMap<Integer, ProductionPlan> retval = new HashMap<Integer, ProductionPlan>();
+        ResultSet resultSet = null;
+        HashMap<Integer, Timestamp[]> productionTimes = null;
+
+        try {
+
+            connection = DBConnectionUtility.getGksConnection();
+
+            StringBuilder ordernumberList = new StringBuilder("(pej.ORDERNO = ");
+            boolean firstEntry = true;
+
+            for (Integer ordernumber : productionDatastore.getProductionOrdernumbers()) {
+
+                if (!firstEntry) {
+                    ordernumberList.append(" OR pej.ORDERNO = ");
+                }
+
+                ordernumberList.append(ordernumber);
+                firstEntry = false;
+
+            }
+
+            ordernumberList.append(")");
+
+            resultSet = connection.createStatement().executeQuery("SELECT DISTINCT "
+                    + "pp.ID AS id, "
+                    + "peq.DESCRIPTION AS queue, "
+                    + "pp.PROCESSSTATEID AS state, "
+                    + "ppt.DESCRIPTION AS step, "
+                    + "pp.DESCRIPTION AS details, "
+                    + "pp.LASTSTARTED AS laststarted, "
+                    + "pp.cSubContractor AS subcontractor, "
+                    + "pp.TIMESPAN AS timespan, "
+                    + "pej.ORDERNO AS ordernumber, "
+                    + "pej.MATERIALDAY AS materialday, "
+                    + "pej.FIRSTPROOFDAY AS firstproofday, "
+                    + "oo.dLeveransdatumUtlovad AS deliverydate, "
+                    + "pp.QUEUEID AS queueid, "
+                    + "pp.iOrder AS ordering, "
+                    + "pp.cImposition AS imposition, "
+                    + "pp.cPaperInfo AS paperinfo, "
+                    + "pp.PrintPartName AS printpart "
+                    + "FROM "
+                    + "Gks.dbo.PE_QUEUE peq, "
+                    + "Gks.dbo.PE_JOB pej,  "
+                    + "Gks.dbo.PE_PROCESS pp, "
+                    + "Gks.dbo.PE_PROCESSTYPE ppt, "
+                    + "Gks.dbo.PE_PROCESSTATE pps, "
+                    + "Gks.dbo.OffertOrder oo "
+                    + "WHERE "
+                    + "pp.QUEUEID != -999 AND "
+                    + "pej.ORDERID = oo.ID AND "
+                    + "peq.ID = pp.QUEUEID AND "
+                    + "pp.DELETED = 0 AND "
+                    + "ppt.ID = pp.PROCESSTYPEID AND "
+                    + "pp.JOBID = pej.ID AND "
+                    + ordernumberList.toString()
+                    + " ORDER BY pp.id ASC");
+
+            ordernumberList = null;
+
+            productionTimes = fetchProductionTimes(connection);
+
+            while (resultSet.next()
+                    && productionDatastore.containsOrder(resultSet.getInt("ordernumber"))) {
+
+                if (productionPlanUtility.timeIsValid(resultSet.getTimestamp("deliverydate"))
+                        && productionPlanUtility.timeIsValid(resultSet.getTimestamp("materialday"))) {
+
+                    ProductionPlan productionPlan;
+
+                    if (retval.containsKey(resultSet.getInt("ordernumber"))) {
+
+                        productionPlan = retval.get(resultSet.getInt("ordernumber"));
+
+                    } else {
+
+                        productionPlan = new ProductionPlan(resultSet.getInt("ordernumber"));
+
+                        Timestamp orderdate = productionDatastore.getOrder(resultSet.getInt("ordernumber")).getOrderdate();
+
+                        ProductionStep initialProductionStep = new ProductionStep(-4, "Material", "Kund", ProductionPlanUtility.QUEUEID_CLIENT);
+                        initialProductionStep.setStarttime(orderdate);
+                        initialProductionStep.setLaststarted(orderdate);
+                        initialProductionStep.setStoptime(resultSet.getTimestamp("materialday"));
+                        initialProductionStep.setOrdering(1);
+
+                        productionPlan.add(initialProductionStep);
+
+                        retval.put(resultSet.getInt("ordernumber"), productionPlan);
+
+                    }
+
+                    ProductionStep productionStep = new ProductionStep(resultSet.getInt("state"),
+                            resultSet.getString("details"),
+                            resultSet.getString("queue"),
+                            resultSet.getInt("queueid"));
+
+                    productionStep.setLaststarted(resultSet.getTimestamp("laststarted"));
+                    productionStep.setSubcontractor(resultSet.getString("subcontractor"));
+                    productionStep.setTimespan(resultSet.getInt("timespan"));
+                    productionStep.setOrdering(resultSet.getInt("ordering"));
+                    productionStep.setImposition(resultSet.getString("imposition"));
+                    productionStep.setPaperinfo(resultSet.getString("paperinfo"));
+                    productionStep.setPrintpart(resultSet.getString("printpart"));
+
+                    if (productionTimes.containsKey(resultSet.getInt("id"))) {
+
+                        productionStep.setStarttime(productionTimes.get(resultSet.getInt("id"))[0]);
+                        productionStep.setStoptime(productionTimes.get(resultSet.getInt("id"))[1]);
+
+                    } else if (productionPlanUtility.getType(resultSet.getInt("queueid")) == ProductionPlanUtility.TYPE.PREPRESS
+                            && resultSet.getTimestamp("materialday") != null) {
+
+                        productionStep.setStarttime(resultSet.getTimestamp("materialday"));
+                        productionStep.setStoptime(resultSet.getTimestamp("firstproofday"));
+
+                    } else if (productionPlanUtility.getType(resultSet.getInt("queueid")) == ProductionPlanUtility.TYPE.DELIVERY) {
+
+                        productionStep.setStarttime(resultSet.getTimestamp("deliverydate"));
+                        productionStep.setStoptime(new Timestamp(productionStep.getStarttime().getTime() + ProductionStep.WORKDDAYLENGTH));
+
+                    }
+
+                    productionPlan.add(productionStep);
+
+                }
+
+            }
+
+        } catch (Exception ex) {
+
+            Logger.getLogger(GKSSynchronizationTask.class.getName()).log(Level.SEVERE, null, ex);
+
+        } finally {
+
+            productionTimes = null;
+
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                    resultSet = null;
+                } catch (SQLException ex) {
+                    Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            if (connection != null) {
+                try {
+                    connection.close();
+                    connection = null;
+                } catch (SQLException ex) {
+                    Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+        }
+
+        return retval.values();
+
+
+    }
+
+    private void putProductionPlans(Collection<ProductionPlan> productionPlanCollection) {
+
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        HashMap<Integer, ProductionPlan> cachedProductionPlanMap = cacheDBUtility.fetchProductionPlanMap();
+
+        boolean cacheDirty = false;
+
+        try {
+
+            StringBuilder purgeProductionPlanStatement = new StringBuilder();
+
+            boolean keepMultiple = false;
+
+            connection = DBConnectionUtility.getCacheDBConnection();
+
+            for (ProductionPlan productionPlan : productionPlanCollection) {
+
+                productionPlanUtility.estimateProductionTimes(productionPlan);
+
+                if (keepMultiple) {
+
+                    purgeProductionPlanStatement.append(" AND");
+
+                }
+
+                purgeProductionPlanStatement.append(" ordernumber != ").append(productionPlan.getOrdernumber());
+
+                keepMultiple = true;
+
+                ProductionPlan cachedProductionPlan = cachedProductionPlanMap.get(productionPlan.getOrdernumber());
+
+                if (cachedProductionPlan == null) {
+
+                    addProductionPlan(productionPlan, connection);
+                    
+                    Logger.getLogger(ProductionDatastore.class.getName()).log(Level.INFO, "Added production plan for order " + productionPlan.getOrdernumber());
+
+                    cacheDirty = true;
+                    
+                } else if (!productionPlan.equals(cachedProductionPlan)) {
+
+                    removeProductionPlan(productionPlan, connection);
+                    addProductionPlan(productionPlan, connection);
+
+                    Logger.getLogger(ProductionDatastore.class.getName()).log(Level.INFO, "Updated production plan for order " + productionPlan.getOrdernumber());
+
+                    cacheDirty = true;
+
+                }
+
+            }
+
+            if (purgeProductionPlanStatement.length() > 0) {
+
+                cacheDirty = cacheDirty || connection.createStatement().executeUpdate("DELETE FROM "
+                        + "production_step_data "
+                        + "WHERE "
+                        + purgeProductionPlanStatement.toString()) > 0;
+
+            }
+
+            if (cacheDirty) {
+
+                productionDatastore.updateProductionPlanCache();
+
+            }
+
+        } catch (SQLException ex) {
+
+            Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
+
+        } finally {
+
+            cachedProductionPlanMap = null;
+
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                    resultSet = null;
+                } catch (SQLException ex) {
+                    Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            if (preparedStatement != null) {
+                try {
+                    preparedStatement.close();
+                    preparedStatement = null;
+                } catch (SQLException ex) {
+                    Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            if (connection != null) {
+                try {
+                    connection.close();
+                    connection = null;
+                } catch (SQLException ex) {
+                    Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+        }
+
+    }
+
+    private void removeProductionPlan(ProductionPlan productionPlan, Connection connection) throws SQLException {
+
+        PreparedStatement preparedStatement = connection.prepareStatement("DELETE FROM "
+                + "production_step_data WHERE "
+                + "ordernumber = ?");
+
+        preparedStatement.setInt(1, productionPlan.getOrdernumber());
+
+        preparedStatement.executeUpdate();
+
+    }
+
+    private void addProductionPlan(ProductionPlan productionPlan, Connection connection) throws SQLException {
+
+        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO "
+                + "production_step_data("
+                + "ordernumber, "
+                + "state, "
+                + "queue, "
+                + "queueid, "
+                + "details, "
+                + "starttime, "
+                + "stoptime, "
+                + "laststarted, "
+                + "subcontractor, "
+                + "timespan, "
+                + "ordering, "
+                + "imposition, "
+                + "paperinfo, "
+                + "printpart) "
+                + "VALUES "
+                + "(?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+
+        for (ProductionStep productionStep : productionPlan) {
+
+            preparedStatement.setInt(1, productionPlan.getOrdernumber());
+            preparedStatement.setInt(2, productionStep.getState());
+            preparedStatement.setString(3, productionStep.getQueuename());
+            preparedStatement.setInt(4, productionStep.getQueueid());
+            preparedStatement.setString(5, productionStep.getDetails());
+            preparedStatement.setTimestamp(6, productionStep.getStarttime());
+            preparedStatement.setTimestamp(7, productionStep.getStoptime());
+            preparedStatement.setTimestamp(8, productionStep.getLaststarted());
+            preparedStatement.setString(9, productionStep.getSubcontractor());
+            preparedStatement.setInt(10, productionStep.getTimespan());
+            preparedStatement.setInt(11, productionStep.getOrdering());
+            preparedStatement.setString(12, productionStep.getImposition());
+            preparedStatement.setString(13, productionStep.getPaperinfo());
+            preparedStatement.setString(14, productionStep.getPrintpart());
+
+            preparedStatement.executeUpdate();
+
+        }
+
+    }
+
+    private void putOrders(Collection<Order> orderList) {
 
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         HashMap<Integer, Order> cachedOrderMap = cacheDBUtility.fetchOrderMap();
+        boolean cacheDirty = false;
 
         try {
 
             connection = DBConnectionUtility.getCacheDBConnection();
 
             StringBuilder purgeOrdersStatement = new StringBuilder();
-            HashSet<Integer> activeOrderList = new HashSet<Integer>();
 
             boolean keepMultiple = false;
 
@@ -159,7 +492,6 @@ public class GKSSynchronizationTask extends TimerTask {
                 }
 
                 purgeOrdersStatement.append(" ordernumber != ").append(order.getOrdernumber());
-                activeOrderList.add(order.getOrdernumber());
 
                 keepMultiple = true;
 
@@ -167,33 +499,11 @@ public class GKSSynchronizationTask extends TimerTask {
 
                 if (cachedOrder == null) {
 
-                    preparedStatement = connection.prepareStatement("INSERT INTO "
-                            + "basic_order_data(name, ordernumber, updated) VALUES(?,?,?)");
-
-                    preparedStatement.setString(1, order.getName());
-                    preparedStatement.setInt(2, order.getOrdernumber());
-                    preparedStatement.setTimestamp(3, order.getUpdated());
-
-                    preparedStatement.executeUpdate();
-
-                    for (OrderUserRelationship orderUserRelationship : order.getRelationships().values()) {
-
-                        preparedStatement = connection.prepareStatement("INSERT INTO "
-                                + "order_user_relationship(ordernumber, username, fullname, relationship) VALUES(?,?,?,?)");
-
-                        preparedStatement.setInt(1, order.getOrdernumber());
-                        preparedStatement.setString(2, orderUserRelationship.getUsername());
-                        preparedStatement.setString(3, orderUserRelationship.getFullname());
-                        preparedStatement.setInt(4, orderUserRelationship.getRelationship());
-
-                        preparedStatement.executeUpdate();
-
-                        userSessionController.publishMessageToUser(new AddOrderMessage(order), orderUserRelationship.getUsername());
-                        userSessionController.publishMessageToUser(new UserMessage("Ny order: " + order.getOrdernumber() + " " + order.getName()), orderUserRelationship.getUsername());
-
-                    }
+                    addOrder(order, connection);
 
                     Logger.getLogger(ProductionDatastore.class.getName()).log(Level.INFO, "Added order {0}", order.getOrdernumber().toString());
+
+                    cacheDirty = true;
 
                 } else {
 
@@ -213,17 +523,17 @@ public class GKSSynchronizationTask extends TimerTask {
                                 String humanReadableFieldName = orderfields.getString(field).substring(0, 1).toUpperCase() + orderfields.getString(field).substring(1);
 
                                 orderUpdateMessage.append(humanReadableFieldName);
-                                
+
                                 if (differences.get(field).getOldValue() != null) {
-                                
+
                                     orderUpdateMessage.append(" ändrades från ").append(differences.get(field).getOldValue());
-                                    
+
                                 } else {
-                                    
+
                                     orderUpdateMessage.append("Sattes");
-                                    
+
                                 }
-                                
+
                                 orderUpdateMessage.append(" till ").append(differences.get(field).getNewValue()).append(". ");
 
                             }
@@ -239,6 +549,8 @@ public class GKSSynchronizationTask extends TimerTask {
                         preparedStatement.setTimestamp(4, order.getUpdated());
 
                         preparedStatement.executeUpdate();
+
+                        cacheDirty = true;
 
                         if (orderComparison.relationshipsChanged()) {
 
@@ -301,7 +613,9 @@ public class GKSSynchronizationTask extends TimerTask {
                         }
 
                         Logger.getLogger(ProductionDatastore.class.getName()).log(Level.INFO, "Updated order {0}", order.getOrdernumber().toString());
+
                         System.err.println(orderUpdateMessage.toString());
+
                         for (String recipient : recipientOrderUpdatedList) {
 
                             if (!cancelledRelationshipUsers.contains(recipient)
@@ -348,20 +662,24 @@ public class GKSSynchronizationTask extends TimerTask {
                 connection.createStatement().executeUpdate("DELETE FROM "
                         + "order_user_relationship WHERE " + purgeOrdersStatement.toString());
 
-                if (connection.createStatement().executeUpdate("DELETE FROM basic_order_data WHERE "
-                        + purgeOrdersStatement.toString()) > 0) {
-
-                    productionDatastore.updateOrderCache();
-
-                }
+                cacheDirty = cacheDirty || connection.createStatement().executeUpdate("DELETE FROM basic_order_data WHERE "
+                        + purgeOrdersStatement.toString()) > 0;
 
             }
 
-        } catch (SQLException ex) {
+            if (cacheDirty) {
+
+                productionDatastore.updateOrderCache();
+
+            }
+
+        } catch (Exception ex) {
 
             Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
 
         } finally {
+
+            cachedOrderMap = null;
 
             if (preparedStatement != null) {
                 try {
@@ -382,6 +700,69 @@ public class GKSSynchronizationTask extends TimerTask {
             }
 
         }
+
+    }
+
+    private void addOrder(Order order, Connection connection) throws SQLException {
+
+        PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO "
+                + "basic_order_data(name, ordernumber, updated, productionorder, orderdate) VALUES(?,?,?,?,?)");
+
+        preparedStatement.setString(1, order.getName());
+        preparedStatement.setInt(2, order.getOrdernumber());
+        preparedStatement.setTimestamp(3, order.getUpdated());
+        preparedStatement.setBoolean(4, order.isProductionOrder());
+        preparedStatement.setTimestamp(5, order.getOrderdate());
+
+        preparedStatement.executeUpdate();
+
+        for (OrderUserRelationship orderUserRelationship : order.getRelationships().values()) {
+
+            preparedStatement = connection.prepareStatement("INSERT INTO "
+                    + "order_user_relationship(ordernumber, username, fullname, relationship) VALUES(?,?,?,?)");
+
+            preparedStatement.setInt(1, order.getOrdernumber());
+            preparedStatement.setString(2, orderUserRelationship.getUsername());
+            preparedStatement.setString(3, orderUserRelationship.getFullname());
+            preparedStatement.setInt(4, orderUserRelationship.getRelationship());
+
+            preparedStatement.executeUpdate();
+
+            userSessionController.publishMessageToUser(new AddOrderMessage(order), orderUserRelationship.getUsername());
+            userSessionController.publishMessageToUser(new UserMessage("Ny order: " + order.getOrdernumber() + " " + order.getName()), orderUserRelationship.getUsername());
+
+        }
+
+    }
+
+    private HashMap<Integer, Timestamp[]> fetchProductionTimes(Connection connection) throws SQLException {
+
+        HashMap<Integer, Timestamp[]> retval = new HashMap<Integer, Timestamp[]>();
+
+        PreparedStatement preparedStatement = connection.prepareStatement("SELECT PT.ProcessID AS processid, "
+                + "pt.StartTime AS starttime, "
+                + "pt.StopTime AS stoptime "
+                + "FROM Gks.dbo.PE_PROCESSTIME AS pt, "
+                + "(SELECT MAX(ID) AS id, ProcessID FROM Gks.dbo.PE_PROCESSTIME WHERE DELETED = 0 GROUP BY ProcessID) AS maxidtable "
+                + "WHERE "
+                + "pt.Starttime > ? AND "
+                + "pt.ID = maxidtable.id");
+
+        preparedStatement.setTimestamp(1, productionDatastore.getLowestProductionOrderTimestamp());
+
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        while (resultSet.next()) {
+
+            Timestamp[] entry = {resultSet.getTimestamp("starttime"), resultSet.getTimestamp("stoptime")};
+            retval.put(resultSet.getInt("processid"), entry);
+
+        }
+
+        resultSet.close();
+        resultSet = null;
+
+        return retval;
 
     }
 

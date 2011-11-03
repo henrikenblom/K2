@@ -5,7 +5,6 @@
 package com.imprima.k2.datastore;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
@@ -20,13 +19,109 @@ import java.util.logging.Logger;
 public class CacheDBUtility {
 
     public CacheDBUtility() {
-        
+
         try {
             Class.forName("org.hsqldb.jdbcDriver");
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(CacheDBUtility.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
+    }
+
+    public HashMap<Integer, ProductionPlan> fetchProductionPlanMap() {
+
+        HashMap<Integer, ProductionPlan> productionPlanMap = new HashMap<Integer, ProductionPlan>();
+
+        Connection connection = null;
+        ResultSet resultSet = null;
+
+        try {
+
+            connection = DBConnectionUtility.getCacheDBConnection();
+
+            resultSet = connection.createStatement().executeQuery("SELECT "
+                    + "id, "
+                    + "ordernumber, "
+                    + "state, "
+                    + "details, "
+                    + "queue, "
+                    + "queueid, "
+                    + "starttime, "
+                    + "stoptime, "
+                    + "laststarted, "
+                    + "subcontractor, "
+                    + "timespan, "
+                    + "ordering, "
+                    + "imposition, "
+                    + "paperinfo, "
+                    + "printpart, "
+                    + "progress "
+                    + "FROM production_step_data");
+
+            while (resultSet.next()) {
+
+                ProductionPlan productionPlan;
+
+                if (productionPlanMap.containsKey(resultSet.getInt("ordernumber"))) {
+
+                    productionPlan = productionPlanMap.get(resultSet.getInt("ordernumber"));
+
+                } else {
+
+                    productionPlan = new ProductionPlan(resultSet.getInt("ordernumber"));
+                    productionPlanMap.put(resultSet.getInt("ordernumber"), productionPlan);
+
+                }
+
+                ProductionStep productionStep = new ProductionStep(resultSet.getInt("state"),
+                        resultSet.getString("details"),
+                        resultSet.getString("queue"),
+                        resultSet.getInt("queueid"));
+
+                productionStep.setDbId(resultSet.getInt("id"));
+                productionStep.setStarttime(resultSet.getTimestamp("starttime"));
+                productionStep.setStoptime(resultSet.getTimestamp("stoptime"));
+                productionStep.setLaststarted(resultSet.getTimestamp("laststarted"));
+                productionStep.setSubcontractor(resultSet.getString("subcontractor"));
+                productionStep.setTimespan(resultSet.getInt("timespan"));
+                productionStep.setOrdering(resultSet.getInt("ordering"));
+                productionStep.setImposition(resultSet.getString("imposition"));
+                productionStep.setPaperinfo(resultSet.getString("paperinfo"));
+                productionStep.setPrintpart(resultSet.getString("printpart"));
+                productionStep.setProgress(resultSet.getInt("progress"));
+
+                productionPlan.add(productionStep);
+
+            }
+
+        } catch (SQLException ex) {
+
+            Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
+
+        } finally {
+
+            if (resultSet != null) {
+                try {
+                    resultSet.close();
+                    resultSet = null;
+                } catch (SQLException ex) {
+                    Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            if (connection != null) {
+                try {
+                    connection.close();
+                    connection = null;
+                } catch (SQLException ex) {
+                    Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+        }
+
+        return productionPlanMap;
+
     }
 
     public HashMap<Integer, Order> fetchOrderMap() {
@@ -35,44 +130,41 @@ public class CacheDBUtility {
 
         Connection connection = null;
         ResultSet resultSet = null;
-        PreparedStatement preparedStatement = null;
 
         try {
 
             connection = DBConnectionUtility.getCacheDBConnection();
 
             resultSet = connection.createStatement().executeQuery("SELECT "
-                    + "ordernumber, name, updated "
+                    + "ordernumber, name, updated, productionorder, orderdate, id "
                     + "FROM basic_order_data");
 
             while (resultSet.next()) {
 
                 orderMap.put(resultSet.getInt("ordernumber"),
                         new Order(resultSet.getInt("ordernumber"),
-                                resultSet.getString("name"),
-                                resultSet.getTimestamp("updated")
-                                )
-                        );
+                        resultSet.getString("name"),
+                        resultSet.getTimestamp("updated"),
+                        resultSet.getBoolean("productionorder"),
+                        resultSet.getTimestamp("orderdate"),
+                        resultSet.getInt("id")));
 
             }
 
             resultSet = connection.createStatement().executeQuery("SELECT "
                     + "ordernumber, username, fullname, relationship "
                     + "FROM order_user_relationship");
-            
+
             while (resultSet.next()) {
-                
-                orderMap.get(resultSet.getInt("ordernumber"))
-                        .putOrderUserRelationship(
+
+                orderMap.get(resultSet.getInt("ordernumber")).putOrderUserRelationship(
                         new OrderUserRelationship(
-                                resultSet.getString("username"),
-                                resultSet.getString("fullname"),
-                                resultSet.getInt("relationship")
-                                )
-                        );
-                
+                        resultSet.getString("username"),
+                        resultSet.getString("fullname"),
+                        resultSet.getInt("relationship")));
+
             }
-            
+
         } catch (SQLException ex) {
 
             Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
@@ -103,7 +195,6 @@ public class CacheDBUtility {
 
     }
 
-    
     public HashMap<Integer, String[]> fetchUserIdMap() {
 
         HashMap<Integer, String[]> userIdMap = new HashMap<Integer, String[]>();
@@ -151,7 +242,7 @@ public class CacheDBUtility {
             }
 
         }
-        
+
         return userIdMap;
 
     }
@@ -200,11 +291,11 @@ public class CacheDBUtility {
             }
 
         }
-        
+
         return clientIdMap;
 
     }
-    
+
     public void createTables() {
 
         Logger.getLogger(ProductionDatastore.class.getName()).log(Level.INFO, "Creating tables and indices.");
@@ -220,8 +311,10 @@ public class CacheDBUtility {
                 connection.createStatement().executeUpdate("CREATE TABLE "
                         + "basic_order_data(id INTEGER IDENTITY PRIMARY KEY, "
                         + "ordernumber INTEGER, "
+                        + "productionorder BOOLEAN, "
                         + "name VARCHAR(200), "
-                        + "updated DATETIME)");
+                        + "updated DATETIME, "
+                        + "orderdate DATETIME)");
 
             } catch (SQLSyntaxErrorException ex) {
 
@@ -258,6 +351,43 @@ public class CacheDBUtility {
 
                 connection.createStatement().executeUpdate("CREATE INDEX order_user_relationship_index "
                         + "ON order_user_relationship(ordernumber, username)");
+
+            } catch (SQLSyntaxErrorException ex) {
+
+                Logger.getLogger(ProductionDatastore.class.getName()).log(Level.INFO, ex.getMessage());
+
+            }
+
+            try {
+
+                connection.createStatement().executeUpdate("CREATE TABLE production_step_data "
+                        + "(id INTEGER IDENTITY PRIMARY KEY, "
+                        + "ordernumber INTEGER NOT NULL, "
+                        + "state INTEGER, "
+                        + "queue VARCHAR(100), "
+                        + "queueid INTEGER, "
+                        + "details VARCHAR(200), "
+                        + "starttime DATETIME, "
+                        + "stoptime DATETIME, "
+                        + "laststarted DATETIME, "
+                        + "subcontractor VARCHAR(100),"
+                        + "timespan INTEGER, "
+                        + "ordering INTEGER, "
+                        + "imposition VARCHAR(100), "
+                        + "paperinfo VARCHAR(100), "
+                        + "printpart VARCHAR(100), "
+                        + "progress INTEGER)");
+
+            } catch (SQLSyntaxErrorException ex) {
+
+                Logger.getLogger(ProductionDatastore.class.getName()).log(Level.INFO, ex.getMessage());
+
+            }
+
+            try {
+
+                connection.createStatement().executeUpdate("CREATE INDEX "
+                        + "production_step_data_index ON production_step_data(ordernumber)");
 
             } catch (SQLSyntaxErrorException ex) {
 
