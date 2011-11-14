@@ -78,6 +78,27 @@ public final class ProductionDatastore {
         
     }
 
+    public boolean containsProductionPlan(Integer ordernumber) {
+        
+        return productionPlanMap.containsKey(ordernumber);
+        
+    }
+    
+    public ProductionPlan getProductionPlan(Integer ordernumber) {
+        
+        ProductionPlan productionPlan = productionPlanMap.get(ordernumber);
+        
+        if (productionPlan == null) {
+            
+            updateProductionPlanCache();
+            productionPlan = productionPlanMap.get(ordernumber);
+            
+        }
+        
+        return productionPlan;
+        
+    }
+    
     public boolean containsOrder(Integer ordernumber) {
         
         return ordercacheMap.containsKey(ordernumber);

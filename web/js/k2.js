@@ -13,7 +13,7 @@ var sortingcaption = {
 };
 
 
-function handleKeyEvent(event) {
+var handleKeyEvent = function(event) {
 
     switch (event.keyCode) {
                         
@@ -29,7 +29,7 @@ function handleKeyEvent(event) {
                     
 }
 
-function showSortingMenu() {
+var showSortingMenu = function() {
     
     $('#sorting-menu').fadeIn(effectDurationDenominator, function() {
 
@@ -43,7 +43,7 @@ function showSortingMenu() {
     
 }
 
-function hideSortingMenu() {
+var hideSortingMenu = function() {
     
     $('#sorting-menu').fadeOut(effectDurationDenominator, function() {
         
@@ -56,7 +56,7 @@ function hideSortingMenu() {
     
 }
 
-function doOrderListSort() {
+var doOrderListSort = function() {
 
     $('div#order-list>.order-list-entry').tsort("div." + $('input[name$="sort"]:checked').val(),
     {
@@ -78,7 +78,7 @@ function doOrderListSort() {
                     
 }
 
-function adjustViewPort() {
+ var adjustViewPort = function() {
 
     $('#order-list-layer').height($(window).height() - $('#menyLayer').height() - $('#order-listControls').height() - 54); 
 
@@ -89,11 +89,11 @@ function adjustViewPort() {
 
     //$('#order-details-entry').height($('#content-layer').height() - 136);
     
-    $('div.fn-gantt > div.fn-content > div.rightPanel').width($('#content-layer').width() - 310);
+    $('div.hegantt > div.fn-content > div.rightPanel').width($('#content-layer').width() - 310);
 
 }
 
-function showOrderInfo(ordernumber, target) {
+var showOrderInfo = function(ordernumber, target) {
         
     $.getJSON('servlet/order', {
         
@@ -129,7 +129,7 @@ function showOrderInfo(ordernumber, target) {
             
 }
 
-function closeOrderdetails(ordernumber) {
+var closeOrderdetails = function(ordernumber) {
     
     
     $('#order-details-entry').fadeOut(effectDurationDenominator, function() {
@@ -145,7 +145,7 @@ function closeOrderdetails(ordernumber) {
     
 }
 
-function generateOrderListEntry(orderData) {
+var generateOrderListEntry = function(orderData) {
 
     var orderListEntry = $('<div>');
     orderListEntry.attr("style", "display: none");
@@ -223,7 +223,7 @@ function generateOrderListEntry(orderData) {
                 
 }
 
-function showOrderDetails(ordernumber) {
+var showOrderDetails = function(ordernumber) {
          
     selectedOrdernumber = ordernumber;
     
@@ -268,7 +268,7 @@ function showOrderDetails(ordernumber) {
          
 }
 
-function setOrderDetailsView(ordernumber, target) {
+var setOrderDetailsView = function(ordernumber, target) {
     
     var orderview = $('input[name$="orderview"]:checked').val();
     
@@ -286,7 +286,7 @@ function setOrderDetailsView(ordernumber, target) {
     
 }
 
-function makeFileuploadDropZone(dropZone, ordernumber) {
+var makeFileuploadDropZone = function(dropZone, ordernumber) {
     
     var identifier = getUniqueIdFromServer();
     var uploadingString = 'Laddar upp ';
@@ -384,7 +384,7 @@ function makeFileuploadDropZone(dropZone, ordernumber) {
     
 }
 
-function getUniqueIdFromServer() {
+var getUniqueIdFromServer = function() {
     
     var id;
     
@@ -402,7 +402,7 @@ function getUniqueIdFromServer() {
     
 }
 
-function handleLevel9Message(bayeuxMessage) {
+var handleLevel9Message = function(bayeuxMessage) {
     
     var message = $.parseJSON(bayeuxMessage.data);
 
@@ -427,7 +427,7 @@ function handleLevel9Message(bayeuxMessage) {
     
 }
 
-function addOrder(orderData) {
+var addOrder = function(orderData) {
 
     $('#order-list').append(generateOrderListEntry(orderData));
         
@@ -439,7 +439,7 @@ function addOrder(orderData) {
 
 }
 
-function removeOrder(ordernumber) {
+var removeOrder = function(ordernumber) {
     
     closeOrderdetails(ordernumber);
     
@@ -452,7 +452,7 @@ function removeOrder(ordernumber) {
     
 }
 
-function updateOrderdata(orderData) {
+var updateOrderdata = function(orderData) {
         
     $.each(orderData, function(key, value) {
 
@@ -480,7 +480,7 @@ function updateOrderdata(orderData) {
     
 }
 
-function isScrolledIntoView(elem) {
+var isScrolledIntoView = function(elem) {
     
     var docViewTop = $(window).scrollTop();
     var docViewBottom = docViewTop + $(window).height();
@@ -493,7 +493,7 @@ function isScrolledIntoView(elem) {
     
 }
 
-function updateTips( t ) {
+var updateTips = function(t) {
     $('.validateTips')
     .text( t )
     .addClass( "ui-state-highlight" );
@@ -502,7 +502,7 @@ function updateTips( t ) {
     }, effectDurationDenominator * 2 );
 }
 
-function checkLength( o, n, min, max ) {
+var checkLength = function(o, n, min, max) {
     if ( o.val().length > max || o.val().length < min ) {
         o.addClass( "ui-state-error" );
         updateTips( n + " måste bestå av minst " +
@@ -514,7 +514,7 @@ function checkLength( o, n, min, max ) {
     }
 }
 
-function checkRegexp( o, regexp, n ) {
+var checkRegexp = function(o, regexp, n) {
     if ( !( regexp.test( o.val() ) ) ) {
         o.addClass( "ui-state-error" );
         updateTips( n );
@@ -524,7 +524,7 @@ function checkRegexp( o, regexp, n ) {
     }
 }
 
-function addAtom(elementname, filename) {
+var addAtom = function(elementname, filename) {
     
     $.ajax({
         async: false,
@@ -537,7 +537,7 @@ function addAtom(elementname, filename) {
     
 }
 
-function showUserSettingsDialog() {
+var showUserSettingsDialog = function() {
     
     if (!$('#userSettingsDialog').length) {
         
@@ -613,7 +613,7 @@ function showUserSettingsDialog() {
     
 }
 
-function truncateString(string, length, limit) {
+var truncateString = function(string, length, limit) {
     
     var retval = string;
     

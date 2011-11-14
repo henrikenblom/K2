@@ -21,6 +21,10 @@
         <servlet-name>UniqueUploadSessionIdGenerator</servlet-name>
         <servlet-class>com.imprima.k2.communication.UniqueUploadSessionIdGenerator</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>ProductionPlanServlet</servlet-name>
+        <servlet-class>com.imprima.k2.communication.ProductionPlanServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>UploadServlet</servlet-name>
         <url-pattern>/servlet/upload</url-pattern>
@@ -40,6 +44,10 @@
     <servlet-mapping>
         <servlet-name>L9Servlet</servlet-name>
         <url-pattern>/l9/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>ProductionPlanServlet</servlet-name>
+        <url-pattern>/servlet/productionplan</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>600</session-timeout>

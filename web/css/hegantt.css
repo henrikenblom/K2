@@ -1,0 +1,130 @@
+/* 
+    Document   : hegantt
+    Created on : 2011-nov-03, 19:44:30
+    Author     : henrik
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+.hegantt {
+    text-indent: 4px;
+}
+
+.hegantt .header {
+    background: #F0F0F0 url('../images/ganttheaderbackground.png') no-repeat;
+}
+
+.hegantt .header .day {
+    border-top: 1px solid #A0A0A0;
+}
+
+.hegantt .row.hour {
+    text-align: center;
+    text-indent: 0;
+    padding: 0;
+}
+
+.hegantt .row {
+    float: left;
+    height: 24px;
+    line-height: 24px;
+    padding-top: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    padding-right: 0;
+    margin: 0;
+}
+
+.hegantt .row.spacer {
+    background: #F0F0F0;
+    border-bottom: 1px solid #A0A0A0;
+}
+
+.hegantt .grid {
+    background: #FFF url('../images/ganttmatrixbackground.png');
+    border-left: 1px solid #A0A0A0;
+}
+
+.hegantt .gridheader {
+    border-right: 1px solid #F0F0F0;
+}
+
+.hegantt .leftPanel {
+    float: left;
+    width: 225px;
+    overflow: hidden;
+}
+
+.hegantt .rightPanel {
+    float: left;
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 400px;
+    padding: 0;
+    margin: 0;
+}
+
+.hegantt .leftPanel .name {
+    width: 225px;
+    text-align: right;
+    float: left;
+    height: 23px;
+    margin: 0;
+    border-bottom: 1px solid #A0A0A0;
+    background-color: #F0F0F0;
+}
+
+.hegantt .leftPanel .name .label {
+    padding-right: 4px;
+}
+
+.hegantt .grid {
+    padding: 0;
+    margin: 0;
+}
+
+.hegantt .bar {
+    display: block;
+    height: 18px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+.hegantt .bar-content {
+    height: 17px;
+    width: 100%;
+    opacity: 0.8;
+}
+
+.hegantt .skipmarker {
+    display: inline-block;
+    position: relative;
+    z-index: 100;
+    width: 40px;
+    background: url('../images/ganttspanskip.png') repeat-y;
+}
+
+.hegantt .skipmarkers {
+    position: relative;
+    top: -241px;
+}
+
+.hegantt .barstyle-0 {
+    background-color: #8F0000;
+}
+
+.hegantt .barstyle-1 {
+    background-color: #8F4100;
+}
+
+.hegantt .barstyle-2 {
+    background-color: #005656;
+}
+
+.hegantt .barstyle-3 {
+    background-color: #007200;
+}
+
+.hegantt .barstyle-4 {
+    background-color: #730041;
+}

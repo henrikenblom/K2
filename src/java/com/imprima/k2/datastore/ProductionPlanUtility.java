@@ -5,8 +5,11 @@
 package com.imprima.k2.datastore;
 
 import java.sql.Timestamp;
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Locale;
 
+// TODO: Gruppera INTE prepress och atelje
 /**
  *
  * @author henrik
@@ -15,7 +18,6 @@ public class ProductionPlanUtility {
 
     private static Timestamp ORDERTIMELIMIT = new Timestamp(0xdc6be25480l);
     private static long HOUR = 3600000l;
-    
     public static int QUEUEID_PREPRESS = 4150;
     public static int QUEUEID_PLAT = 4151;
     public static int QUEUEID_KBA8F = 4152;
@@ -25,12 +27,13 @@ public class ProductionPlanUtility {
     public static int QUEUEID_FALS32 = 4190;
     public static int QUEUEID_FALSKLAMMER = 4191;
     public static int QUEUEID_STAL52 = 4193;
-    public static int QUEUEID_KLAMMER = 4147;
+    public static int QUEUEID_KLAMMER = 4194;
     public static int QUEUEID_LEGO = 4195;
     public static int QUEUEID_EFTERBEHANDLING = 4196;
     public static int QUEUEID_EXPEDITIONLEVERANS = 4197;
     public static int QUEUEID_KLEGOTRYCK = 4283;
     public static int QUEUEID_ATELJE = 4150;
+    public static int QUEUEID_LENNGRENS = 4355;
     public static int QUEUEID_LACKLAMINERING = 13079;
     public static int QUEUEID_FAKTURERING = 14664;
     public static int QUEUEID_DIGITALTRYCK = 23496;
@@ -44,7 +47,7 @@ public class ProductionPlanUtility {
 
         PREPRESS, PLATE, PRINT, POSTPRESS, DELIVERY, LEGO, INVOICE, DIGITAL_PRINT, CLIENT
     }
-
+    private HashMap<String, EnumMap<TYPE, String>> localizedGroupNames = new HashMap<String, EnumMap<TYPE, String>>();
     private HashMap<Integer, TYPE> typeMap = new HashMap<Integer, TYPE>();
 
     private ProductionPlanUtility() {
@@ -60,6 +63,7 @@ public class ProductionPlanUtility {
         typeMap.put(QUEUEID_STAL52, TYPE.POSTPRESS);
         typeMap.put(QUEUEID_KLAMMER, TYPE.POSTPRESS);
         typeMap.put(QUEUEID_LEGO, TYPE.POSTPRESS);
+        typeMap.put(QUEUEID_LENNGRENS, TYPE.POSTPRESS);
         typeMap.put(QUEUEID_EFTERBEHANDLING, TYPE.POSTPRESS);
         typeMap.put(QUEUEID_EXPEDITIONLEVERANS, TYPE.DELIVERY);
         typeMap.put(QUEUEID_KLEGOTRYCK, TYPE.LEGO);
@@ -71,6 +75,20 @@ public class ProductionPlanUtility {
         typeMap.put(QUEUEID_LAMINERING, TYPE.POSTPRESS);
         typeMap.put(QUEUEID_PERFNING, TYPE.POSTPRESS);
         typeMap.put(QUEUEID_CLIENT, TYPE.CLIENT);
+
+        EnumMap<TYPE, String> svGroupNames = new EnumMap<TYPE, String>(TYPE.class);
+
+        svGroupNames.put(TYPE.PREPRESS, "Premedia");
+        svGroupNames.put(TYPE.PLATE, "Plåtkörning");
+        svGroupNames.put(TYPE.PRINT, "Tryckning");
+        svGroupNames.put(TYPE.POSTPRESS, "Efterbehandling");
+        svGroupNames.put(TYPE.DELIVERY, "Leverans");
+        svGroupNames.put(TYPE.LEGO, "Tryckning/Efterbehandling");
+        svGroupNames.put(TYPE.INVOICE, "Fakturering");
+        svGroupNames.put(TYPE.DIGITAL_PRINT, "Digitaltryck");
+        svGroupNames.put(TYPE.CLIENT, "Kundarbete");
+
+        localizedGroupNames.put("sv", svGroupNames);
 
     }
 
@@ -89,11 +107,24 @@ public class ProductionPlanUtility {
 
     }
 
+    public String getLocalizedGroupName(Integer queueid, Locale locale) {
+
+        String retval = "";
+
+        try {
+            retval = localizedGroupNames.get(locale.getLanguage()).get(getType(queueid));
+        } catch (Exception ex) {
+        }
+
+        return retval;
+
+    }
+
     public void estimateProductionTimes(ProductionPlan productionPlan) {
 
         ProductionStep[] productionSteps = productionPlan.toArray(new ProductionStep[0]);
         productionPlan.clear();
-        
+
         for (int c = 0; c < productionSteps.length; c++) {
 
             if (c == 0) {
@@ -166,11 +197,11 @@ public class ProductionPlanUtility {
 
             if (currentProductionStep.getStarttime().after(currentProductionStep.getStoptime())
                     && currentProductionStep.getStarttime().equals(currentProductionStep.getStoptime())) {
-                
+
                 currentProductionStep.setStarttime(new Timestamp(currentProductionStep.getStarttime().getTime() - HOUR));
-                
+
             }
-            
+
         }
 
         if (!timeIsValid(currentProductionStep.getStoptime())) {
@@ -196,7 +227,7 @@ public class ProductionPlanUtility {
         }
 
     }
-    
+
     public boolean timeIsValid(Timestamp timestamp) {
 
         return timestamp != null && timestamp.after(ORDERTIMELIMIT);

@@ -61,7 +61,7 @@ public class HouseKeeper extends HttpServlet {
 
     }
 
-    private void startTimers() throws SQLException, ClassNotFoundException {
+    private void startTimers() {
 
         timer.schedule(userDBSyncTask, new Date(), userDBSyncInterval);
         timer.schedule(preemptiveCachingTask, new Date(), preemptiveCachingInterval);

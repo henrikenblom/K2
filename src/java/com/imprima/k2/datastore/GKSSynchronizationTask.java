@@ -47,7 +47,7 @@ public class GKSSynchronizationTask extends TimerTask {
 
         putOrders(fetchActiveOrders());
         putProductionPlans(fetchProductionPlans());
-
+        
     }
 
     private Collection<Order> fetchActiveOrders() {
@@ -109,7 +109,9 @@ public class GKSSynchronizationTask extends TimerTask {
 
 
         } catch (Exception ex) {
+            
             Logger.getLogger(GKSSynchronizationTask.class.getName()).log(Level.SEVERE, null, ex);
+            
         } finally {
 
             if (resultSet != null) {
@@ -131,8 +133,7 @@ public class GKSSynchronizationTask extends TimerTask {
             }
 
         }
-
-
+ 
         return retval;
 
     }
@@ -406,7 +407,7 @@ public class GKSSynchronizationTask extends TimerTask {
                     Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+                        
         }
 
     }

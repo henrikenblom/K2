@@ -56,7 +56,8 @@ public class CacheDBUtility {
                     + "paperinfo, "
                     + "printpart, "
                     + "progress "
-                    + "FROM production_step_data");
+                    + "FROM production_step_data "
+                    + "ORDER BY ordernumber, starttime, stoptime");
 
             while (resultSet.next()) {
 
@@ -73,6 +74,19 @@ public class CacheDBUtility {
 
                 }
 
+                if (productionPlan.getMinDate() == null) {
+                    
+                    productionPlan.setMinDate(resultSet.getTimestamp("starttime"));
+                    
+                }
+                
+                if (productionPlan.getMaxDate() == null
+                        || productionPlan.getMaxDate().before(resultSet.getTimestamp("stoptime"))) {
+                    
+                    productionPlan.setMaxDate(resultSet.getTimestamp("stoptime"));
+                    
+                }
+                
                 ProductionStep productionStep = new ProductionStep(resultSet.getInt("state"),
                         resultSet.getString("details"),
                         resultSet.getString("queue"),

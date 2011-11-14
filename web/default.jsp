@@ -26,7 +26,7 @@
 
         <link rel="stylesheet" type="text/css" href="css/imprima-theme/jquery-ui-1.8.16.custom.css">
         <link rel="stylesheet" type="text/css" href="css/basics.css">
-        <link rel="stylesheet" type="text/css" href="css/gantt.css">
+        <link rel="stylesheet" type="text/css" href="css/hegantt.css">
 
         <script type="text/javascript" src="js/org/cometd.js"></script>
         <script type="text/javascript" src="js/org/cometd/ReloadExtension.js"></script>
@@ -40,7 +40,7 @@
         <script type="text/javascript" src="js/jquery/jquery.tinysort.min.js"></script>
         <script type="text/javascript" src="js/jquery/jquery.scrollTo-min.js"></script>
         <script type="text/javascript" src="js/jquery/fileupload/jquery.fileupload.js"></script>
-        <script type="text/javascript" src="js/jquery/jquery.fn.gantt.he.js"></script>
+        <script type="text/javascript" src="js/jquery/jquery.hegantt.js"></script>
         <script type="text/javascript" src="js/k2.js"></script>
         <script type="text/javascript" src="js/messagebar.js"></script>
         <script type="text/javascript" src="js/settingsmenus.js"></script>

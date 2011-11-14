@@ -316,8 +316,8 @@ jQuery.fn.gantt = function (options) {
         };
         this.parseDateRange = function(from, to) {
             var current = new Date(from.getTime());
-            var end =  new Date(to.getTime());
-            ;
+            //            var end =  new Date(to.getTime());
+            //            ;
             var ret = new Array();
             var i = 0;
             do {
@@ -330,8 +330,10 @@ jQuery.fn.gantt = function (options) {
             return eval('new' + dateStr.replace(/\//g, ' '));
         };
         this.genId = function (ticks) {
-            var t = Math.floor(ticks / 86400000);
-            return t * 86400000;
+                        var t = Math.floor(ticks / 86400000);
+                        return t * 86400000;
+//            var t = Math.floor(ticks / 3600000);
+//            return t * 3600000;
         };
         var _getCellSize = null;
         this.getCellSize = function() {
