@@ -49,6 +49,11 @@ public class ProductionPlanServlet extends HttpServlet {
 
                     getProductionPlan(out, Integer.parseInt(request.getParameter("ordernumber")));
 
+                } else if (action.equalsIgnoreCase("order_has_productionplan")
+                        && request.getParameter("ordernumber") != null) {
+                    
+                    gson.toJson(productionDatastore.containsProductionPlan(Integer.parseInt(request.getParameter("ordernumber"))), out);
+                    
                 }
 
             }

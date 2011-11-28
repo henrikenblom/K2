@@ -103,7 +103,7 @@ public class ProductionPlan extends TreeSet<ProductionStep> {
         ArrayList<ProductionPlanListEntry> values = new ArrayList<ProductionPlanListEntry>(Arrays.asList(groups.values().toArray(new ProductionPlanListEntry[0])));
 
         Collections.sort(values);
-        System.err.println(values);
+
         return values;
 
     }

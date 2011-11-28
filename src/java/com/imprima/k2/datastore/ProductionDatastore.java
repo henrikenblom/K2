@@ -47,7 +47,7 @@ public final class ProductionDatastore {
 
     }
 
-    public void updateOrderCache() {
+    public synchronized void updateOrderCache() {
 
         ordercacheMap = cacheDBUtility.fetchOrderMap();
 
@@ -72,19 +72,19 @@ public final class ProductionDatastore {
 
     }
     
-    public void updateProductionPlanCache() {
+    public synchronized void updateProductionPlanCache() {
         
         productionPlanMap = cacheDBUtility.fetchProductionPlanMap();
         
     }
 
-    public boolean containsProductionPlan(Integer ordernumber) {
+    public synchronized boolean containsProductionPlan(Integer ordernumber) {
         
         return productionPlanMap.containsKey(ordernumber);
         
     }
     
-    public ProductionPlan getProductionPlan(Integer ordernumber) {
+    public synchronized ProductionPlan getProductionPlan(Integer ordernumber) {
         
         ProductionPlan productionPlan = productionPlanMap.get(ordernumber);
         
@@ -99,13 +99,13 @@ public final class ProductionDatastore {
         
     }
     
-    public boolean containsOrder(Integer ordernumber) {
+    public synchronized boolean containsOrder(Integer ordernumber) {
         
         return ordercacheMap.containsKey(ordernumber);
         
     }
     
-    public Set<Integer> getProductionOrdernumbers() {
+    public synchronized Set<Integer> getProductionOrdernumbers() {
         
         if (productionOrdernumbers.isEmpty()) {
             
@@ -117,7 +117,7 @@ public final class ProductionDatastore {
         
     }
     
-    public Order getOrder(Integer ordernumber) {
+    public synchronized Order getOrder(Integer ordernumber) {
 
         Order order = ordercacheMap.get(ordernumber);
         
@@ -247,10 +247,12 @@ public final class ProductionDatastore {
     }
 
     public Timestamp getLowestProductionOrderTimestamp() {
+        
         return lowestProductionOrderTimestamp;
+        
     }
 
-    private Order fetchOrder(int ordernumber, Timestamp updated, Connection cacheConnection) {
+    private synchronized Order fetchOrder(int ordernumber, Timestamp updated, Connection cacheConnection) {
 
         Order order = null;
 

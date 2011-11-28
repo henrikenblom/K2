@@ -81,7 +81,7 @@ $.fn.hegantt = function(options) {
         .width(width)
         .html('<div class="bar-content ui-corner-all barstyle-' + barstyleindex + '"></div>');
             
-        if (barstyleindex++ > 3) {
+        if (barstyleindex++ > 4) {
             barstyleindex = 0;
         }
             
@@ -157,7 +157,7 @@ $.fn.hegantt = function(options) {
                                 
                 var skipmarker = $('<div class="skipmarker">')
                 .css('left', (skipMarkerPosition - 33) - (33 * markerCount++))
-                .height(CELLHEIGHT * (rows + 4) + 1);
+                .height(CELLHEIGHT * (rows + 5) + 1);
                                             
                 skipmarkers.append(skipmarker);
                                             

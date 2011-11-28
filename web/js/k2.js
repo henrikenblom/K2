@@ -78,7 +78,7 @@ var doOrderListSort = function() {
                     
 }
 
- var adjustViewPort = function() {
+var adjustViewPort = function() {
 
     $('#order-list-layer').height($(window).height() - $('#menyLayer').height() - $('#order-listControls').height() - 54); 
 
@@ -86,8 +86,6 @@ var doOrderListSort = function() {
     $('#order-view-menu').css('top', '1px');
     
     $('#content-layer').width($(window).width() - $('#order-list-layer').width());
-
-    //$('#order-details-entry').height($('#content-layer').height() - 136);
     
     $('div.hegantt > div.fn-content > div.rightPanel').width($('#content-layer').width() - 310);
 
@@ -104,45 +102,43 @@ var showOrderInfo = function(ordernumber, target) {
             
         var orderdetailsHeader = $('<div>').addClass('header');
         
-        var ordernumber = $('<h1>');
-        ordernumber.html(orderData.ordernumber);
-        ordernumber.addClass('ordernumber');
-        
         var ordername = $('<h1>');
-        ordername.html(orderData.name);
+        ordername.append(orderData.ordernumber + ' ' + orderData.name);
         ordername.addClass('ordername');
         
-        orderdetailsHeader.append(ordernumber)
-        .append(ordername);
+        orderdetailsHeader.append(ordername);
         
         var updated = $('<div>');
         var labelUpdated = $('<label>').html('Senast uppdaterad');
         
         updated.append(labelUpdated).append(orderData.updated);
-        
+                
         target.html(orderdetailsHeader);
         target.append(updated);
-                    
+                          
+        if (hasProductionPlan(orderData.ordernumber)) {
+            
+            var ganttchartheader = $('<h2>');
+            ganttchartheader.html('Produktionsplan');
+        
+            var gantt = $('<div id="gantt-' + orderData.ordernumber + '">');
+            gantt.addClass('ganttchart');
+        
+            gantt.hegantt({
+                source: 'servlet/productionplan?action=get_productionplan_by_ordernumber&ordernumber=' + orderData.ordernumber,
+                callback: adjustViewPort
+            });
+            
+            target
+            .append(ganttchartheader)
+            .append(gantt); 
+            
+        }
+                  
         makeFileuploadDropZone(target, orderData.ordernumber);        
                 
     });
             
-}
-
-var closeOrderdetails = function(ordernumber) {
-    
-    
-    $('#order-details-entry').fadeOut(effectDurationDenominator, function() {
-                
-        $('#order-details-entry').remove();
-        $('.order-list-entry').removeClass('ui-state-active');
-                    
-        $('#order-view-menu').fadeOut(effectDurationDenominator);
-                
-    });
-    
-    selectedOrdernumber = null;
-    
 }
 
 var generateOrderListEntry = function(orderData) {
@@ -223,6 +219,22 @@ var generateOrderListEntry = function(orderData) {
                 
 }
 
+var closeOrderdetails = function(ordernumber) {
+    
+    
+    $('#order-details-entry').fadeOut(effectDurationDenominator, function() {
+                
+        $('#order-details-entry').remove();
+        $('.order-list-entry').removeClass('ui-state-active');
+                    
+        $('#order-view-menu').fadeOut(effectDurationDenominator);
+                
+    });
+    
+    selectedOrdernumber = null;
+    
+}
+
 var showOrderDetails = function(ordernumber) {
          
     selectedOrdernumber = ordernumber;
@@ -259,7 +271,7 @@ var showOrderDetails = function(ordernumber) {
         return false;
             
     });
-            
+    
     $('#order-view-menu').fadeIn(effectDurationDenominator);
     
     setOrderDetailsView(ordernumber, orderdetails);
@@ -275,11 +287,7 @@ var setOrderDetailsView = function(ordernumber, target) {
     if (orderview == 'information') {
             
         showOrderInfo(ordernumber, target);
-            
-    } else if (orderview == 'planning') {
-            
-        showPlanningChart(ordernumber, target);
-            
+
     }
 
     adjustViewPort();
@@ -402,6 +410,24 @@ var getUniqueIdFromServer = function() {
     
 }
 
+var hasProductionPlan = function(ordernumber) {
+    
+    var retval = false;
+    
+    $.ajax({
+        async: false,
+        url: 'servlet/productionplan?action=order_has_productionplan&ordernumber=' + ordernumber,
+        dataType: 'json',
+        context: document.body,
+        success: function(data){
+            retval = data;
+        }
+    });
+    
+    return retval;
+    
+}
+
 var handleLevel9Message = function(bayeuxMessage) {
     
     var message = $.parseJSON(bayeuxMessage.data);
@@ -418,7 +444,7 @@ var handleLevel9Message = function(bayeuxMessage) {
         
         removeOrder(message.body);
             
-    } else if (message.type == 'addordermessage') {
+    }else if (message.type == 'addordermessage') {
         
         addOrder(message.body);
         doOrderListSort();
@@ -509,7 +535,7 @@ var checkLength = function(o, n, min, max) {
             min + " och max " + max + " tecken." );
         o.focus();
         return false;
-    } else {
+    }else {
         return true;
     }
 }

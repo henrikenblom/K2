@@ -36,9 +36,6 @@ public class GKSSynchronizationTask extends TimerTask {
     private ResourceBundle orderfields = ResourceBundle.getBundle("orderfields");
     private ProductionPlanUtility productionPlanUtility = ProductionPlanUtility.getInstance();
 
-    public GKSSynchronizationTask() {
-    }
-
     @Override
     public void run() {
 
@@ -47,7 +44,7 @@ public class GKSSynchronizationTask extends TimerTask {
 
         putOrders(fetchActiveOrders());
         putProductionPlans(fetchProductionPlans());
-        
+
     }
 
     private Collection<Order> fetchActiveOrders() {
@@ -109,31 +106,43 @@ public class GKSSynchronizationTask extends TimerTask {
 
 
         } catch (Exception ex) {
-            
+
             Logger.getLogger(GKSSynchronizationTask.class.getName()).log(Level.SEVERE, null, ex);
-            
+
         } finally {
 
             if (resultSet != null) {
+
                 try {
-                    resultSet.close();
+
+                    if (!resultSet.isClosed()) {
+                        resultSet.close();
+                    }
+
                     resultSet = null;
+
                 } catch (SQLException ex) {
                     Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
 
             if (connection != null) {
+
                 try {
-                    connection.close();
+
+                    if (!connection.isClosed()) {
+                        connection.close();
+                    }
+
                     connection = null;
+
                 } catch (SQLException ex) {
                     Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
 
         }
- 
+
         return retval;
 
     }
@@ -204,68 +213,71 @@ public class GKSSynchronizationTask extends TimerTask {
 
             productionTimes = fetchProductionTimes(connection);
 
-            while (resultSet.next()
-                    && productionDatastore.containsOrder(resultSet.getInt("ordernumber"))) {
+            while (resultSet.next()) {
+                
+                if (productionDatastore.containsOrder(resultSet.getInt("ordernumber"))) {
 
-                if (productionPlanUtility.timeIsValid(resultSet.getTimestamp("deliverydate"))
-                        && productionPlanUtility.timeIsValid(resultSet.getTimestamp("materialday"))) {
+                    if (productionPlanUtility.timeIsValid(resultSet.getTimestamp("deliverydate"))
+                            && productionPlanUtility.timeIsValid(resultSet.getTimestamp("materialday"))) {
 
-                    ProductionPlan productionPlan;
+                        ProductionPlan productionPlan;
 
-                    if (retval.containsKey(resultSet.getInt("ordernumber"))) {
+                        if (retval.containsKey(resultSet.getInt("ordernumber"))) {
 
-                        productionPlan = retval.get(resultSet.getInt("ordernumber"));
+                            productionPlan = retval.get(resultSet.getInt("ordernumber"));
 
-                    } else {
+                        } else {
 
-                        productionPlan = new ProductionPlan(resultSet.getInt("ordernumber"));
+                            productionPlan = new ProductionPlan(resultSet.getInt("ordernumber"));
 
-                        Timestamp orderdate = productionDatastore.getOrder(resultSet.getInt("ordernumber")).getOrderdate();
+                            Timestamp orderdate = productionDatastore.getOrder(resultSet.getInt("ordernumber")).getOrderdate();
 
-                        ProductionStep initialProductionStep = new ProductionStep(-4, "Material", "Kund", ProductionPlanUtility.QUEUEID_CLIENT);
-                        initialProductionStep.setStarttime(orderdate);
-                        initialProductionStep.setLaststarted(orderdate);
-                        initialProductionStep.setStoptime(resultSet.getTimestamp("materialday"));
-                        initialProductionStep.setOrdering(1);
+                            ProductionStep initialProductionStep = new ProductionStep(-4, "Material", "Kund", ProductionPlanUtility.QUEUEID_CLIENT);
+                            initialProductionStep.setStarttime(orderdate);
+                            initialProductionStep.setLaststarted(orderdate);
+                            initialProductionStep.setStoptime(resultSet.getTimestamp("materialday"));
+                            initialProductionStep.setOrdering(1);
 
-                        productionPlan.add(initialProductionStep);
+                            productionPlan.add(initialProductionStep);
 
-                        retval.put(resultSet.getInt("ordernumber"), productionPlan);
+                            retval.put(resultSet.getInt("ordernumber"), productionPlan);
+
+                        }
+
+                        ProductionStep productionStep = new ProductionStep(resultSet.getInt("state"),
+                                resultSet.getString("details"),
+                                resultSet.getString("queue"),
+                                resultSet.getInt("queueid"));
+
+                        productionStep.setLaststarted(resultSet.getTimestamp("laststarted"));
+                        productionStep.setSubcontractor(resultSet.getString("subcontractor"));
+                        productionStep.setTimespan(resultSet.getInt("timespan"));
+                        productionStep.setOrdering(resultSet.getInt("ordering"));
+                        productionStep.setImposition(resultSet.getString("imposition"));
+                        productionStep.setPaperinfo(resultSet.getString("paperinfo"));
+                        productionStep.setPrintpart(resultSet.getString("printpart"));
+
+                        if (productionTimes.containsKey(resultSet.getInt("id"))) {
+
+                            productionStep.setStarttime(productionTimes.get(resultSet.getInt("id"))[0]);
+                            productionStep.setStoptime(productionTimes.get(resultSet.getInt("id"))[1]);
+
+                        } else if (productionPlanUtility.getType(resultSet.getInt("queueid")) == ProductionPlanUtility.TYPE.PREPRESS
+                                && resultSet.getTimestamp("materialday") != null) {
+
+                            productionStep.setStarttime(resultSet.getTimestamp("materialday"));
+                            productionStep.setStoptime(resultSet.getTimestamp("firstproofday"));
+
+                        } else if (productionPlanUtility.getType(resultSet.getInt("queueid")) == ProductionPlanUtility.TYPE.DELIVERY) {
+
+                            productionStep.setStarttime(resultSet.getTimestamp("deliverydate"));
+                            productionStep.setStoptime(new Timestamp(productionStep.getStarttime().getTime() + ProductionStep.WORKDDAYLENGTH));
+
+                        }
+
+                        productionPlan.add(productionStep);
 
                     }
-
-                    ProductionStep productionStep = new ProductionStep(resultSet.getInt("state"),
-                            resultSet.getString("details"),
-                            resultSet.getString("queue"),
-                            resultSet.getInt("queueid"));
-
-                    productionStep.setLaststarted(resultSet.getTimestamp("laststarted"));
-                    productionStep.setSubcontractor(resultSet.getString("subcontractor"));
-                    productionStep.setTimespan(resultSet.getInt("timespan"));
-                    productionStep.setOrdering(resultSet.getInt("ordering"));
-                    productionStep.setImposition(resultSet.getString("imposition"));
-                    productionStep.setPaperinfo(resultSet.getString("paperinfo"));
-                    productionStep.setPrintpart(resultSet.getString("printpart"));
-
-                    if (productionTimes.containsKey(resultSet.getInt("id"))) {
-
-                        productionStep.setStarttime(productionTimes.get(resultSet.getInt("id"))[0]);
-                        productionStep.setStoptime(productionTimes.get(resultSet.getInt("id"))[1]);
-
-                    } else if (productionPlanUtility.getType(resultSet.getInt("queueid")) == ProductionPlanUtility.TYPE.PREPRESS
-                            && resultSet.getTimestamp("materialday") != null) {
-
-                        productionStep.setStarttime(resultSet.getTimestamp("materialday"));
-                        productionStep.setStoptime(resultSet.getTimestamp("firstproofday"));
-
-                    } else if (productionPlanUtility.getType(resultSet.getInt("queueid")) == ProductionPlanUtility.TYPE.DELIVERY) {
-
-                        productionStep.setStarttime(resultSet.getTimestamp("deliverydate"));
-                        productionStep.setStoptime(new Timestamp(productionStep.getStarttime().getTime() + ProductionStep.WORKDDAYLENGTH));
-
-                    }
-
-                    productionPlan.add(productionStep);
 
                 }
 
@@ -281,7 +293,9 @@ public class GKSSynchronizationTask extends TimerTask {
 
             if (resultSet != null) {
                 try {
-                    resultSet.close();
+                    if (!resultSet.isClosed()) {
+                        resultSet.close();
+                    }
                     resultSet = null;
                 } catch (SQLException ex) {
                     Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
@@ -290,7 +304,9 @@ public class GKSSynchronizationTask extends TimerTask {
 
             if (connection != null) {
                 try {
-                    connection.close();
+                    if (!connection.isClosed()) {
+                        connection.close();
+                    }
                     connection = null;
                 } catch (SQLException ex) {
                     Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
@@ -300,7 +316,6 @@ public class GKSSynchronizationTask extends TimerTask {
         }
 
         return retval.values();
-
 
     }
 
@@ -340,11 +355,11 @@ public class GKSSynchronizationTask extends TimerTask {
                 if (cachedProductionPlan == null) {
 
                     addProductionPlan(productionPlan, connection);
-                    
+
                     Logger.getLogger(ProductionDatastore.class.getName()).log(Level.INFO, "Added production plan for order " + productionPlan.getOrdernumber());
 
                     cacheDirty = true;
-                    
+
                 } else if (!productionPlan.equals(cachedProductionPlan)) {
 
                     removeProductionPlan(productionPlan, connection);
@@ -383,7 +398,9 @@ public class GKSSynchronizationTask extends TimerTask {
 
             if (resultSet != null) {
                 try {
-                    resultSet.close();
+                    if (!resultSet.isClosed()) {
+                        resultSet.close();
+                    }
                     resultSet = null;
                 } catch (SQLException ex) {
                     Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
@@ -401,13 +418,15 @@ public class GKSSynchronizationTask extends TimerTask {
 
             if (connection != null) {
                 try {
-                    connection.close();
+                    if (!connection.isClosed()) {
+                        connection.close();
+                    }
                     connection = null;
                 } catch (SQLException ex) {
                     Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-                        
+
         }
 
     }
@@ -693,7 +712,9 @@ public class GKSSynchronizationTask extends TimerTask {
 
             if (connection != null) {
                 try {
-                    connection.close();
+                    if (!connection.isClosed()) {
+                        connection.close();
+                    }
                     connection = null;
                 } catch (SQLException ex) {
                     Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
@@ -746,10 +767,10 @@ public class GKSSynchronizationTask extends TimerTask {
                 + "FROM Gks.dbo.PE_PROCESSTIME AS pt, "
                 + "(SELECT MAX(ID) AS id, ProcessID FROM Gks.dbo.PE_PROCESSTIME WHERE DELETED = 0 GROUP BY ProcessID) AS maxidtable "
                 + "WHERE "
-                + "pt.Starttime > ? AND "
+                //+ "pt.Starttime > ? AND "
                 + "pt.ID = maxidtable.id");
 
-        preparedStatement.setTimestamp(1, productionDatastore.getLowestProductionOrderTimestamp());
+        //preparedStatement.setTimestamp(1, productionDatastore.getLowestProductionOrderTimestamp());
 
         ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -760,7 +781,9 @@ public class GKSSynchronizationTask extends TimerTask {
 
         }
 
-        resultSet.close();
+        if (!resultSet.isClosed()) {
+            resultSet.close();
+        }
         resultSet = null;
 
         return retval;

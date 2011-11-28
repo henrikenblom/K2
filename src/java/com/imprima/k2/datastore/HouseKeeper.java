@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.SQLException;
-import java.util.Date;
-import java.util.Timer;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -22,9 +22,9 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class HouseKeeper extends HttpServlet {
 
-    private Timer timer = new Timer("HouseKeeperTimer");
-    private int userDBSyncInterval = 10000;
-    private int preemptiveCachingInterval = 7000;
+    private ScheduledThreadPoolExecutor scheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(2);
+    private int userDBSyncInterval = 10;
+    private int preemptiveCachingInterval = 7;
     private GKSSynchronizationTask preemptiveCachingTask;
     private UserDBSyncTask userDBSyncTask;
     private Gson gson = new Gson();
@@ -55,23 +55,20 @@ public class HouseKeeper extends HttpServlet {
         preemptiveCachingTask = null;
         userDBSyncTask = null;
 
-        timer = null;
-
         super.destroy();
 
     }
 
     private void startTimers() {
 
-        timer.schedule(userDBSyncTask, new Date(), userDBSyncInterval);
-        timer.schedule(preemptiveCachingTask, new Date(), preemptiveCachingInterval);
+        scheduledThreadPoolExecutor.scheduleWithFixedDelay(userDBSyncTask, 0l, userDBSyncInterval, TimeUnit.SECONDS);
+        scheduledThreadPoolExecutor.scheduleWithFixedDelay(preemptiveCachingTask, 0l, preemptiveCachingInterval, TimeUnit.SECONDS);
 
     }
 
     private void stopTimers() {
 
-        timer.cancel();
-        timer.purge();
+        scheduledThreadPoolExecutor.shutdown();
 
     }
 

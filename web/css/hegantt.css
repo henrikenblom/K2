@@ -101,6 +101,7 @@
     position: relative;
     z-index: 100;
     width: 40px;
+    height: 100%;
     background: url('../images/ganttspanskip.png') repeat-y;
 }
 
@@ -118,7 +119,7 @@
 }
 
 .hegantt .barstyle-2 {
-    background-color: #005656;
+    background-color: #6595A1;
 }
 
 .hegantt .barstyle-3 {
@@ -127,4 +128,8 @@
 
 .hegantt .barstyle-4 {
     background-color: #730041;
+}
+
+.hegantt .barstyle-5 {
+    background-color: #A68029;
 }

@@ -7,12 +7,8 @@ import java.sql.SQLException;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.sql.DataSource;
 import com.imprima.util.password.*;
-import java.sql.DriverManager;
 
 /**
  *
@@ -24,7 +20,7 @@ import java.sql.DriverManager;
 public class UserDBSyncTask extends TimerTask {
 
     PasswordGenerator passwordGenerator = new PronouncablePasswordGenerator();
-    
+
     @Override
     public void run() {
 
@@ -41,8 +37,8 @@ public class UserDBSyncTask extends TimerTask {
 
         try {
 
-            gksConnection = getGksConnection();
-            userDBConnection = getUserDBConnection();
+            gksConnection = DBConnectionUtility.getGksConnection();
+            userDBConnection = DBConnectionUtility.getUserDBConnection();
 
             resultSet = gksConnection.prepareStatement("SELECT ID AS id, cAnvändarnamn AS username, cLösenord AS password, cNamn AS fullname FROM Gks.dbo.Användare WHERE bRaderas = 0;").executeQuery();
 
@@ -73,7 +69,9 @@ public class UserDBSyncTask extends TimerTask {
             if (resultSet != null) {
 
                 try {
-                    resultSet.close();
+                    if (!resultSet.isClosed()) {
+                        resultSet.close();
+                    }
                 } catch (SQLException ex) {
                     Logger.getLogger(UserDBSyncTask.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -117,8 +115,8 @@ public class UserDBSyncTask extends TimerTask {
 
         try {
 
-            gksConnection = getGksConnection();
-            userDBConnection = getUserDBConnection();
+            gksConnection = DBConnectionUtility.getGksConnection();
+            userDBConnection = DBConnectionUtility.getUserDBConnection();
 
             resultSet = userDBConnection.prepareStatement("SELECT MAX(id) as max_id FROM users").executeQuery();
 
@@ -131,7 +129,7 @@ public class UserDBSyncTask extends TimerTask {
             resultSet = gksConnection.prepareStatement("SELECT ID AS id, cAlias AS username, cFirma AS fullname FROM Gks.dbo.Företag WHERE bTypKund = 1 AND bRaderad = 0 AND ID > " + userDBMaxId).executeQuery();
 
             while (resultSet.next()) {
-                
+
                 PreparedStatement preparedStatement = userDBConnection.prepareStatement("INSERT INTO users (id, username, password, fullname) VALUES(?,?,?,?)");
 
                 preparedStatement.setInt(1, resultSet.getInt("id"));
@@ -140,9 +138,9 @@ public class UserDBSyncTask extends TimerTask {
                 preparedStatement.setString(4, resultSet.getString("fullname"));
 
                 preparedStatement.executeUpdate();
-                
+
                 Logger.getLogger(UserDBSyncTask.class.getName()).log(Level.INFO, "Created user ''{0}'' ({1}).", new String[]{resultSet.getString("username"), resultSet.getString("fullname")});
-                
+
             }
 
         } catch (NamingException ex) {
@@ -154,7 +152,9 @@ public class UserDBSyncTask extends TimerTask {
             if (resultSet != null) {
 
                 try {
-                    resultSet.close();
+                    if (!resultSet.isClosed()) {
+                        resultSet.close();
+                    }
                 } catch (SQLException ex) {
                     Logger.getLogger(UserDBSyncTask.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -166,7 +166,11 @@ public class UserDBSyncTask extends TimerTask {
             if (gksConnection != null) {
 
                 try {
-                    gksConnection.close();
+
+                    if (!gksConnection.isClosed()) {
+                        gksConnection.close();
+                    }
+
                 } catch (SQLException ex) {
                     Logger.getLogger(UserDBSyncTask.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -178,7 +182,11 @@ public class UserDBSyncTask extends TimerTask {
             if (userDBConnection != null) {
 
                 try {
-                    userDBConnection.close();
+
+                    if (!userDBConnection.isClosed()) {
+                        userDBConnection.close();
+                    }
+
                 } catch (SQLException ex) {
                     Logger.getLogger(UserDBSyncTask.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -189,23 +197,6 @@ public class UserDBSyncTask extends TimerTask {
 
         }
 
-    }
-
-    private Connection getGksConnection() throws NamingException, SQLException {
-
-        return getGksDataSource().getConnection();
-
-    }
-
-    private Connection getUserDBConnection() throws NamingException, SQLException {
-
-        return DriverManager.getConnection("jdbc:hsqldb:hsql://localhost/user", "sa", "");
-
-    }
-
-    private DataSource getGksDataSource() throws NamingException {
-        Context c = new InitialContext();
-        return (DataSource) c.lookup("java:comp/env/gksDataSource");
     }
 
 }

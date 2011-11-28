@@ -220,7 +220,6 @@
             </ul>
             <div class="buttonset" id="order-view-menu" style="display: none">
                 <input type="radio" class="orderview-choice" name="orderview" value="information" id="orderview-info-button" checked="checked"/><label for="orderview-info-button">Information</label>
-                <input type="radio" class="orderview-choice" name="orderview" value="planning" id="orderview-planning-button"/><label for="orderview-planning-button">Planering</label>
                 <input type="radio" class="orderview-choice" name="orderview" value="webproof" id="orderview-webproof-button"/><label for="orderview-webproof-button">Webbkorrektur</label>
             </div>
         </div>
