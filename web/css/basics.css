@@ -155,6 +155,22 @@ li label {
     top:1px;
 }
 
+#login-dialog {
+    padding: 40px;
+    width: 400px;
+    height: 120px;
+    opacity: .8;
+}
+
+#login-error {
+    font-weight: bold;
+    color: #8F0000;
+}
+
+#login-form {
+    margin-top: 48px;
+    margin-bottom: 8px;
+}
 
 .order-list-entry {
     margin: 0;

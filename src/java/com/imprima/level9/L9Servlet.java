@@ -3,6 +3,8 @@ package com.imprima.level9;
 import com.google.gson.Gson;
 import com.imprima.kesession.UserSessionController;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -33,7 +35,7 @@ public class L9Servlet extends CometdServlet {
     }
 
     @Override
-    public void service(ServletRequest req, ServletResponse resp) throws ServletException, IOException {
+    public void service(ServletRequest req, ServletResponse resp) {
         
         String sessionId = null;
         
@@ -49,8 +51,16 @@ public class L9Servlet extends CometdServlet {
         }
         
         if (userSessionController.userSessionExists(sessionId)) {
-        
-            super.service(req, resp);
+            
+            try {
+                super.service(req, resp);
+            } catch (ServletException ex) {
+                Logger.getLogger(L9Servlet.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IOException ex) {
+                Logger.getLogger(L9Servlet.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (IllegalStateException ex) {
+                Logger.getLogger(L9Servlet.class.getName()).log(Level.SEVERE, null, ex);
+            }
         
         }
         

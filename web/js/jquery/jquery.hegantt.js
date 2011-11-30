@@ -65,7 +65,7 @@ $.fn.hegantt = function(options) {
                 
     }
 
-    var createBar = function(from, length, index) {
+    var createBar = function(from, length, index, text) {
 
         var width = length * PIXELSPERMILLISECOND;
         
@@ -74,8 +74,9 @@ $.fn.hegantt = function(options) {
             width = CELLWIDTH / 2;
             
         }
-
+  
         var bar = $('<div class="bar">')
+        .attr('title', text)
         .css('top', index * CELLHEIGHT)
         .css('margin-left', (from - dateStart.getTime()) * PIXELSPERMILLISECOND)
         .width(width)
@@ -172,9 +173,9 @@ $.fn.hegantt = function(options) {
             if (entry.values) {
                 
                 $.each(entry.values, function(j, barData) {
-                                    
-                    grid.append(createBar(barData.from - skippedMilliseconds, barData.to - barData.from - skipLength, i));
-                                    
+                    
+                    grid.append(createBar(barData.from - skippedMilliseconds, barData.to - barData.from - skipLength, i, new Date(barData.from).toString()));
+                    
                 });
             
             }

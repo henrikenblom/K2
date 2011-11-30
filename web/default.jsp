@@ -29,22 +29,38 @@
         <link rel="stylesheet" type="text/css" href="css/hegantt.css">
 
         <script type="text/javascript" src="js/org/cometd.js"></script>
+        <script type="text/javascript" src="js/org/cometd/Cometd.js"></script>
         <script type="text/javascript" src="js/org/cometd/ReloadExtension.js"></script>
+        <script type="text/javascript" src="js/org/cometd/AckExtension.js"></script>
+        <script type="text/javascript" src="js/org/cometd/TimeStampExtension.js"></script>
+        <script type="text/javascript" src="js/org/cometd/TimeSyncExtension.js"></script>
+        <script type="text/javascript" src="js/org/cometd/CallbackPollingTransport.js"></script>
+        <script type="text/javascript" src="js/org/cometd/LongPollingTransport.js"></script>
+        <script type="text/javascript" src="js/org/cometd/RequestTransport.js"></script>
+        <script type="text/javascript" src="js/org/cometd/Transport.js"></script>
+        <script type="text/javascript" src="js/org/cometd/TransportRegistry.js"></script>
+        <script type="text/javascript" src="js/org/cometd/Utils.js"></script>
+        <script type="text/javascript" src="js/org/cometd/WebSocketTransport.js"></script>
+
         <script type="text/javascript" src="js/json2.js"></script>
-        <script type="text/javascript" src="js/jquery/jquery-1.6.4.min.js"></script>
+
+        <script type="text/javascript" src="js/jquery/jquery-1.7.1.min.js"></script>
         <script type="text/javascript" src="js/jquery/jquery-ui-1.8.16.custom.min.js"></script>
         <script type="text/javascript" src="js/jquery/jquery.dateFormat-1.0.js"></script>
         <script type="text/javascript" src="js/jquery/jquery.cometd.js"></script>
-        <script type="text/javascript" src="js/jquery/jquery.cookie.js"></script>
+        <script type="text/javascript" src="js/jquery/jquery.cometd-ack.js"></script>
         <script type="text/javascript" src="js/jquery/jquery.cometd-reload.js"></script>
+        <script type="text/javascript" src="js/jquery/jquery.cometd-timestamp.js"></script>
+        <script type="text/javascript" src="js/jquery/jquery.cometd-timesync.js"></script>
+        <script type="text/javascript" src="js/jquery/jquery.cookie.js"></script>
         <script type="text/javascript" src="js/jquery/jquery.tinysort.min.js"></script>
         <script type="text/javascript" src="js/jquery/jquery.scrollTo-min.js"></script>
         <script type="text/javascript" src="js/jquery/fileupload/jquery.fileupload.js"></script>
         <script type="text/javascript" src="js/jquery/jquery.hegantt.js"></script>
+
         <script type="text/javascript" src="js/k2.js"></script>
         <script type="text/javascript" src="js/messagebar.js"></script>
         <script type="text/javascript" src="js/settingsmenus.js"></script>
-        <script type="text/javascript" src="js/planningchart.js"></script>
 
         <script type="text/javascript">
                         
@@ -148,7 +164,7 @@
                 });
 
                 
-                adjustViewPort();
+                adjustViewPort;
                 
                 $(document).bind('keydown keypress', function (event) {
 
@@ -170,13 +186,15 @@
                 $("#orderview-info-button").button( { icons: {primary:'ui-icon-document'} } );
                 $("#orderview-planning-button").button( { icons: {primary:'ui-icon-clock'} } );
                 $("#orderview-webproof-button").button( { icons: {primary:'ui-icon-image'} } );
+                
+                $(window).resize(adjustViewPort);
                                                 
             });
                       
         </script>
         <title>K2 - <%= userSession.get("fullname")%></title>
     </head>
-    <body onresize="adjustViewPort()">
+    <body>
         <div id="order-controls" class="ui-widget">
             <input type="checkbox" id="sort-order-button"><label for="sort-order-button"></label>
             <ul id="sorting-menu" class="ui-menu ui-widget ui-widget-content ui-corner-all" role="menu" style="display:none">

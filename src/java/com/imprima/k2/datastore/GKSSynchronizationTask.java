@@ -550,7 +550,7 @@ public class GKSSynchronizationTask extends TimerTask {
 
                                 } else {
 
-                                    orderUpdateMessage.append("Sattes");
+                                    orderUpdateMessage.append(" sattes");
 
                                 }
 
