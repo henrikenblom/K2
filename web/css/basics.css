@@ -173,7 +173,6 @@ li label {
     width: 450px;
     height: 120px;
     box-shadow: 0px 0px 18px #333;
-    
 }
 
 #login-error {
@@ -216,6 +215,7 @@ li label {
     font-weight: bold;
     display: block;
     overflow: auto;
+    min-height: 600px;
 }
 
 .ordernumber, .name, .sales_fullname, .projectmanager_fullname, .updated {
@@ -244,8 +244,6 @@ li label {
 }
 
 .text {
-    
-    
 }
 
 .timestamp {

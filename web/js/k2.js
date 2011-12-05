@@ -13,25 +13,25 @@ var sortingcaption = {
 
 var setName = function(name) {
 
-    localStorage.setItem(username + "name", name);
+    localStorage.setItem(username + "_name", name);
     
 }
 
 var setEmail = function(email) {
     
-    localStorage.setItem(username + "email", email);
+    localStorage.setItem(username + "_email", email);
     
 }
 
 var getName = function() {
     
-    return localStorage.getItem(username + "name");
+    return localStorage.getItem(username + "_name");
     
 }
 
 var getEmail = function() {
     
-    return localStorage.getItem(username + "email");
+    return localStorage.getItem(username + "_email");
     
 }
 
@@ -97,8 +97,8 @@ var doOrderListSort = function() {
     }
     );
                 
-    $('#order-controls ul li label span').removeClass('ui-icon'); 
-               
+    $('#order-controls ul li label span').removeClass('ui-icon');
+    
     $('#' + $('input[name$="sort"]:checked').val() + '-sort-button-icon').addClass('ui-icon');
     $('#' + $('input[name$="order"]:checked').val() + '-order-button-icon').addClass('ui-icon');
 
@@ -106,8 +106,8 @@ var doOrderListSort = function() {
     
     $('#sort-order-button').button('option', 'label', 'Sortera efter ' + sortingcaption[$('input[name$="sort"]:checked').val()]);
     
-    localStorage.setItem('sort', $('input[name$="sort"]:checked').val());
-    localStorage.setItem('order', $('input[name$="order"]:checked').val());
+    localStorage.setItem(username + '_sort', $('input[name$="sort"]:checked').val());
+    localStorage.setItem(username + '_order', $('input[name$="order"]:checked').val());
                     
 }
 

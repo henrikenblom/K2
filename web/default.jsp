@@ -127,15 +127,15 @@
                     return false;
                 });
                 
-                if (localStorage.getItem('sort') != null) {
+                if (localStorage.getItem(username + '_sort') != null) {
                     
-                    $('input[name$="sort"][value="' + localStorage.getItem('sort') + '"]').attr('checked', 'checked');
+                    $('input[name$="sort"][value="' + localStorage.getItem(username + '_sort') + '"]').attr('checked', 'checked');
                     
                 }
                 
-                if (localStorage.getItem('order') != null) {
+                if (localStorage.getItem(username + '_order') != null) {
                     
-                    $('input[name$="order"][value="' + localStorage.getItem('order') + '"]').attr('checked', 'checked');
+                    $('input[name$="order"][value="' + localStorage.getItem(username + '_order') + '"]').attr('checked', 'checked');
                     
                 }
                 
