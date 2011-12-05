@@ -40,29 +40,34 @@ public class UserDBSyncTask extends TimerTask {
             gksConnection = DBConnectionUtility.getGksConnection();
             userDBConnection = DBConnectionUtility.getUserDBConnection();
 
-            resultSet = gksConnection.prepareStatement("SELECT ID AS id, cAnvändarnamn AS username, cLösenord AS password, cNamn AS fullname FROM Gks.dbo.Användare WHERE bRaderas = 0;").executeQuery();
+            resultSet = gksConnection.prepareStatement("SELECT ID AS id, "
+                    + "cAnvändarnamn AS username, "
+                    + "cLösenord AS password, "
+                    + "cNamn AS fullname, "
+                    + "cEpost AS email "
+                    + "FROM Gks.dbo.Användare WHERE bRaderas = 0").executeQuery();
 
             while (resultSet.next()) {
 
                 if (userDBConnection.prepareStatement("UPDATE system_users SET "
                         + "username = '" + resultSet.getString("username") + "',"
                         + "password = '" + GKSPasswordCipher.decipher(resultSet.getString("password")) + "',"
-                        + "fullname = '" + resultSet.getString("fullname") + "'"
+                        + "fullname = '" + resultSet.getString("fullname") + "',"
+                        + "email = '" + resultSet.getString("email") + "'"
                         + " WHERE id = " + resultSet.getString("id")).executeUpdate() == 0) {
 
-                    userDBConnection.prepareStatement("INSERT INTO system_users (id, username, password, fullname) VALUES("
-                            + resultSet.getString("id") + ", "
-                            + "'" + resultSet.getString("username") + "',"
+                    userDBConnection.prepareStatement("INSERT INTO system_users (id, username, password, fullname, email) VALUES("
+                            + resultSet.getString("id").trim() + ", "
+                            + "'" + resultSet.getString("username").trim() + "',"
                             + "'" + GKSPasswordCipher.decipher(resultSet.getString("password")) + "',"
-                            + "'" + resultSet.getString("fullname") + "')").executeUpdate();
-
+                            + "'" + resultSet.getString("fullname").trim() + "',"
+                            + "'" + (resultSet.getString("email") == null ? "" : resultSet.getString("email").trim()) + "')").executeUpdate();
+                    
                 }
 
             }
 
-        } catch (NamingException ex) {
-            Logger.getLogger(UserDBSyncTask.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(UserDBSyncTask.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
 

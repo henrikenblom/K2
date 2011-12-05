@@ -4,6 +4,7 @@ import com.imprima.k2.datastore.DBConnectionUtility;
 import com.imprima.level9.Message;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.util.HashMap;
 import java.util.Set;
 import javax.servlet.ServletContext;
@@ -125,20 +126,28 @@ public class UserSessionController {
 
         Connection connection = null;
         ResultSet resultSet = null;
-
+        
         try {
 
             connection = DBConnectionUtility.getUserDBConnection();
 
-            resultSet = connection.prepareStatement("SELECT id, "
-                    + "fullname "
+            resultSet = connection.prepareStatement("SELECT * "
                     + "FROM system_users "
                     + "WHERE username = '" + userSession.getUsername().toUpperCase() + "'").executeQuery();
-
+                        
             if (resultSet.next()) {
 
-                userSession.put("fullname", resultSet.getString("fullname"));
-                userSession.put("id", resultSet.getString("id"));
+                ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+                
+                for (int i = 1; i <= resultSetMetaData.getColumnCount(); i++) {
+
+                    userSession.put(
+                            resultSetMetaData.getColumnLabel(i).toLowerCase(),
+                            resultSet.getString(resultSetMetaData.getColumnLabel(i))
+                            );
+                    
+                }
+                
                 userSession.setSysUser(true);
 
             } else {

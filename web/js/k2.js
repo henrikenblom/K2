@@ -4,7 +4,6 @@ var trayWidth = 483;
 var effectDurationDenominator = 200;
 var noticeDuration = 5000;
 var noticeLayerMouseOver = false;
-var name,email;
 var cometd = $.cometd;
 var sortingcaption = {
     "ordernumber":"ordernummer",
@@ -12,6 +11,29 @@ var sortingcaption = {
     "timestamp":"aktualitet"
 };
 
+var setName = function(name) {
+
+    localStorage.setItem(username + "name", name);
+    
+}
+
+var setEmail = function(email) {
+    
+    localStorage.setItem(username + "email", email);
+    
+}
+
+var getName = function() {
+    
+    return localStorage.getItem(username + "name");
+    
+}
+
+var getEmail = function() {
+    
+    return localStorage.getItem(username + "email");
+    
+}
 
 var handleKeyEvent = function(event) {
 
@@ -58,6 +80,17 @@ var hideSortingMenu = function() {
 
 var doOrderListSort = function() {
 
+    if ($('#search').val().length > 0) {
+        
+        $('div#order-list>.order-list-entry').hide();
+        $('div#order-list>.order-list-entry:containsi(' + $('#search').val() + ')').show();
+    
+    } else {
+        
+        $('div#order-list>.order-list-entry').show();
+        
+    }
+    
     $('div#order-list>.order-list-entry').tsort("div." + $('input[name$="sort"]:checked').val(),
     {
         order:$('input[name$="order"]:checked').val()
@@ -69,7 +102,7 @@ var doOrderListSort = function() {
     $('#' + $('input[name$="sort"]:checked').val() + '-sort-button-icon').addClass('ui-icon');
     $('#' + $('input[name$="order"]:checked').val() + '-order-button-icon').addClass('ui-icon');
 
-    hideSortingMenu();
+    hideSortingMenu(); 
     
     $('#sort-order-button').button('option', 'label', 'Sortera efter ' + sortingcaption[$('input[name$="sort"]:checked').val()]);
     
@@ -83,7 +116,6 @@ var adjustViewPort = function() {
     $('#order-list-layer').height($(window).height() - $('#menyLayer').height() - $('#order-listControls').height() - 54); 
 
     $('#content-layer, #order-view-menu').css('left', $('#order-list-layer').width());
-    $('#order-view-menu').css('top', '1px');
     
     $('#content-layer').width($(window).width() - $('#order-list-layer').width());
     
@@ -314,11 +346,11 @@ var makeFileuploadDropZone = function(dropZone, ordernumber) {
         },
         {
             name: 'email',
-            value: email
+            value: getEmail
         },
         {
             name: 'fullname',
-            value: name
+            value: getName
         },
         {
             name: 'identifier',
@@ -571,13 +603,13 @@ var showUserSettingsDialog = function() {
         
     }
                 
-    if (localStorage.getItem("name") != null || localStorage.getItem("email") != null) {
+    if (getName != null || getEmail != null) {
                     
         $('#userSettingsDialogNoData').hide();
         $('#userSettingsDialogChangeData').show();
                     
-        $('#name').val(name);
-        $('#email').val(email);
+        $('#name').val(getName);
+        $('#email').val(getEmail);
 
     }
                 
@@ -605,7 +637,7 @@ var showUserSettingsDialog = function() {
         show: "fade",
         hide: "fade",
         autoOpen: false,
-        width: 460,
+        width: 441,
         buttons: {
             "Ok": function() {
                             
@@ -621,13 +653,10 @@ var showUserSettingsDialog = function() {
 
                 if ( bValid ) {
                                 
-                    localStorage.setItem("name", $('#name').val());
-                    localStorage.setItem("email", $('#email').val());
+                    setName($('#name').val());
+                    setEmail($('#email').val());
 
-                    name = $('#name').val();
-                    email = $('#email').val();
-
-                    $( this ).dialog( "close" );
+                    $(this).dialog( "close" );
                                                     
                 }
             }

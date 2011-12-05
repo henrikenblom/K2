@@ -19,6 +19,7 @@
         <script type="text/javascript">            
             var fullname = '<%= userSession.get("fullname")%>';
             var username = '<%= userSession.getUsername()%>';
+            var sysUser = <%= userSession.isSysUser()%>;
             var l9url = '<%= path%>l9';
             var cometdSubscription;
             var selectedOrdernumber;
@@ -46,6 +47,7 @@
 
         <script type="text/javascript" src="js/jquery/jquery-1.7.1.min.js"></script>
         <script type="text/javascript" src="js/jquery/jquery-ui-1.8.16.custom.min.js"></script>
+        <script type="text/javascript" src="js/jquery/jquery.containsi.js"></script>
         <script type="text/javascript" src="js/jquery/jquery.dateFormat-1.0.js"></script>
         <script type="text/javascript" src="js/jquery/jquery.cometd.js"></script>
         <script type="text/javascript" src="js/jquery/jquery.cometd-ack.js"></script>
@@ -152,6 +154,12 @@
                         doOrderListSort();
                 
                     });
+                    
+                    $('#search').bind('keyup click', function() {
+        
+                        doOrderListSort();
+        
+                    });
                    
                 });
                 
@@ -171,15 +179,19 @@
                     handleKeyEvent(event);     
                     
                 });
-                
-                if (localStorage.getItem("name") == null || localStorage.getItem("email") == null) {
+
+                if (getName() == null || getEmail() == null) {
                     
-                    showUserSettingsDialog();
-                    
-                } else {
-                    
-                    name = localStorage.getItem("name");
-                    email = localStorage.getItem("email");
+                    if (!sysUser) {
+                        
+                        showUserSettingsDialog();
+                         
+                    } else {
+                        
+                        setName(fullname);
+                        setEmail('<%= userSession.get("email")%>');
+                        
+                    }
                     
                 }
                 
@@ -236,12 +248,10 @@
                     </label>
                 </li>
             </ul>
-            <div class="buttonset" id="order-view-menu" style="display: none">
+            <div id="order-view-menu" style="display: none">
                 <input type="radio" class="orderview-choice" name="orderview" value="information" id="orderview-info-button" checked="checked"/><label for="orderview-info-button">Information</label>
                 <input type="radio" class="orderview-choice" name="orderview" value="webproof" id="orderview-webproof-button"/><label for="orderview-webproof-button">Webbkorrektur</label>
             </div>
-        </div>
-        <div id="menu-layer">
             <div id="settings-menus">
                 <input type="checkbox" id="user-menu-button"><label for="user-menu-button"><%= userSession.get("fullname")%></label>
             </div>
@@ -249,6 +259,9 @@
                 <li class="ui-menu-item ui-corner-all" role="menuitem"><a href="#" onclick="showUserSettingsAction()" class="ui-corner-all" tabindex="-1">Namn och e-postadress</a></li>
                 <li class="ui-menu-item ui-corner-all" role="menuitem"><a href="#" onclick="logoutAction()" class="ui-corner-all" tabindex="-1">Logga ut</a></li>
             </ul>
+        </div>
+        <div id="header-layer">
+            <input type="search" id="search" results="5" autosave="as_k2_<%= userSession.getUsername()%>">
         </div>
         <div id="order-list-layer" class="ui-widget">
             <div id="order-list" class="ui-widget">
