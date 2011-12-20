@@ -146,7 +146,7 @@ public class CacheDBUtility {
         ResultSet resultSet = null;
 
         try {
-
+            
             connection = DBConnectionUtility.getCacheDBConnection();
 
             resultSet = connection.createStatement().executeQuery("SELECT "
@@ -155,14 +155,17 @@ public class CacheDBUtility {
 
             while (resultSet.next()) {
 
-                orderMap.put(resultSet.getInt("ordernumber"),
-                        new Order(resultSet.getInt("ordernumber"),
+                Order order = new Order(resultSet.getInt("ordernumber"),
                         resultSet.getString("name"),
                         resultSet.getTimestamp("updated"),
                         resultSet.getBoolean("productionorder"),
                         resultSet.getTimestamp("orderdate"),
-                        resultSet.getInt("id")));
-
+                        resultSet.getInt("id"));
+                
+                addParameters(order, connection);
+                
+                orderMap.put(resultSet.getInt("ordernumber"), order);
+                
             }
 
             resultSet = connection.createStatement().executeQuery("SELECT "
@@ -178,6 +181,7 @@ public class CacheDBUtility {
                         resultSet.getInt("relationship")));
 
             }
+            
 
         } catch (SQLException ex) {
 
@@ -207,6 +211,20 @@ public class CacheDBUtility {
 
         return orderMap;
 
+    }
+    
+    private void addParameters(Order order, Connection connection) throws SQLException {
+        
+        ResultSet resultSet = connection.createStatement().executeQuery("SELECT "
+                + "key, value FROM additional_order_data WHERE basic_order_data_id = "
+                + order.getCacheDBId());
+        
+        while (resultSet.next()) {
+            
+            order.put(resultSet.getString("key"), resultSet.getString("value"));
+            
+        }
+        
     }
 
     public HashMap<Integer, String[]> fetchUserIdMap() {
@@ -323,7 +341,9 @@ public class CacheDBUtility {
             try {
 
                 connection.createStatement().executeUpdate("CREATE TABLE "
-                        + "basic_order_data(id INTEGER IDENTITY PRIMARY KEY, "
+                        + "basic_order_data("
+                        + "id INTEGER IDENTITY PRIMARY KEY, "
+                        + "gksreferenceid INTEGER, "
                         + "ordernumber INTEGER, "
                         + "productionorder BOOLEAN, "
                         + "name VARCHAR(200), "
@@ -346,7 +366,59 @@ public class CacheDBUtility {
                 Logger.getLogger(ProductionDatastore.class.getName()).log(Level.INFO, ex.getMessage());
 
             }
+            
+            try {
 
+                connection.createStatement().executeUpdate("CREATE TABLE "
+                        + "additional_order_data("
+                        + "id INTEGER IDENTITY PRIMARY KEY, "
+                        + "basic_order_data_id INTEGER, "
+                        + "key VARCHAR(100), "
+                        + "value VARCHAR(200))");
+
+            } catch (SQLSyntaxErrorException ex) {
+
+                Logger.getLogger(ProductionDatastore.class.getName()).log(Level.INFO, ex.getMessage());
+
+            }
+            
+            try {
+
+                connection.createStatement().executeUpdate("CREATE INDEX "
+                        + "additional_order_data_index ON additional_order_data(key)");
+
+            } catch (SQLSyntaxErrorException ex) {
+
+                Logger.getLogger(ProductionDatastore.class.getName()).log(Level.INFO, ex.getMessage());
+
+            }
+            
+            try {
+
+                connection.createStatement().executeUpdate("CREATE TABLE "
+                        + "product(id INTEGER IDENTITY PRIMARY KEY, "
+                        + "basic_order_data_id INTEGER, "
+                        + "name VARCHAR(100))");
+
+            } catch (SQLSyntaxErrorException ex) {
+
+                Logger.getLogger(ProductionDatastore.class.getName()).log(Level.INFO, ex.getMessage());
+
+            }
+
+            try {
+
+                connection.createStatement().executeUpdate("CREATE TABLE "
+                        + "product_data(product_id INTEGER, "
+                        + "key VARCHAR(100), "
+                        + "value VARCHAR(200))");
+
+            } catch (SQLSyntaxErrorException ex) {
+
+                Logger.getLogger(ProductionDatastore.class.getName()).log(Level.INFO, ex.getMessage());
+
+            }
+            
             try {
 
                 connection.createStatement().executeUpdate("CREATE TABLE "

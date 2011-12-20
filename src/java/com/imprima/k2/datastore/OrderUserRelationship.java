@@ -15,7 +15,7 @@ public final class OrderUserRelationship {
     public static final int ASSIGNED = 5;
     public static final int CUSTOM = 5;
     
-    public static final String[] TYPENAME = {"sales", "projectmanager", "client", "prepress", "assigned", "custom"};
+    public static final String[] TYPENAME = {"_sales", "_projectmanager", "_client", "_prepress", "_assigned", "_custom"};
     
     private String username;
     private String fullname;

@@ -28,6 +28,7 @@ public final class ProductionDatastore {
     private HashSet<Integer> productionOrdernumbers = new HashSet<Integer>();
     private CacheDBUtility cacheDBUtility = new CacheDBUtility();
     private Timestamp lowestProductionOrderTimestamp = new Timestamp(System.currentTimeMillis());
+    private HashMap<Integer, Order> gksReferenceMap = new HashMap<Integer, Order>();
 
     protected ProductionDatastore() {
 
@@ -46,7 +47,7 @@ public final class ProductionDatastore {
         return instance;
 
     }
-
+    
     public synchronized void updateOrderCache() {
 
         ordercacheMap = cacheDBUtility.fetchOrderMap();
@@ -57,6 +58,8 @@ public final class ProductionDatastore {
 
             ordercacheTimestampMap.put(order.getOrdernumber(),
                     ordercacheMap.get(order.getOrdernumber()).getUpdated());
+            
+            gksReferenceMap.put(order.getGksReferenceId(), order);
                         
             if (order.isProductionOrder()) {
                 
@@ -96,6 +99,12 @@ public final class ProductionDatastore {
         }
         
         return productionPlan;
+        
+    }
+    
+    public synchronized Order getOrderByGKSReferenceId(Integer gksReferenceId) {
+        
+        return gksReferenceMap.get(gksReferenceId);
         
     }
     
@@ -271,8 +280,8 @@ public final class ProductionDatastore {
 
                 userConnection = DBConnectionUtility.getUserDBConnection();
 
-                preparedStatement = cacheConnection.prepareStatement("SELECT name,"
-                        + " updated FROM basic_order_data WHERE ordernumber = ?");
+                preparedStatement = cacheConnection.prepareStatement("SELECT id, "
+                        + "name, updated FROM basic_order_data WHERE ordernumber = ?");
 
                 preparedStatement.setInt(1, ordernumber);
 
@@ -280,6 +289,8 @@ public final class ProductionDatastore {
 
                 if (resultSet.next()) {
 
+                    int id = resultSet.getInt("id");
+                    
                     order = new Order(ordernumber, resultSet.getString("name"),
                             resultSet.getTimestamp("updated"));
 
@@ -297,6 +308,19 @@ public final class ProductionDatastore {
                                 resultSet.getString("fullname"),
                                 resultSet.getInt("relationship")));
 
+                    }
+                    
+                    preparedStatement = cacheConnection.prepareStatement("SELECT parameter, "
+                            + "key FROM additional_order_data WHERE basic_order_data_id = ?");
+                    
+                    preparedStatement.setInt(1, id);
+                    
+                    resultSet = preparedStatement.executeQuery();
+                    
+                    while (resultSet.next()) {
+                        
+                        order.put(resultSet.getString("parameter"), resultSet.getString("key"));
+                        
                     }
 
                 }

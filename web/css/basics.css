@@ -218,12 +218,12 @@ li label {
     min-height: 600px;
 }
 
-.ordernumber, .name, .sales_fullname, .projectmanager_fullname, .updated {
+._ordernumber, ._name, ._sales_fullname, ._projectmanager_fullname, ._updated {
     display: inline;
     white-space: nowrap;
 }
 
-.updated {
+._updated {
     position: absolute;
     right: 6px;
 }
@@ -239,14 +239,14 @@ li label {
     margin-bottom: 12px;
 }
 
-.ordernumber {
+._ordernumber {
     margin-right: 0.4em;
 }
 
 .text {
 }
 
-.timestamp {
+._timestamp {
     display: none;
 }
 

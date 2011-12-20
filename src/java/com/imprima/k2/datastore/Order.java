@@ -25,10 +25,13 @@ public final class Order extends HashMap<String, Object> {
     private boolean productionOrder = false;
     private ProductionPlan productionPlan;
     private Integer cacheDBId;
-
+    private int gksReferenceId;
+    private int ordernumber;
+    private String name = "";
+    
     public Order(Integer ordernumber, String name) {
 
-        put("ordernumber", ordernumber);        
+        this.ordernumber = ordernumber;       
         setName(name);
 
     }
@@ -57,7 +60,7 @@ public final class Order extends HashMap<String, Object> {
     
     public void setName(String name) {
         
-        put("name", (name != null) ? name : "");
+        this.name = (name != null) ? name : "";
         
     }
     
@@ -75,20 +78,20 @@ public final class Order extends HashMap<String, Object> {
     
     public Integer getOrdernumber() {
         
-        return (Integer) get("ordernumber");
+        return ordernumber;
         
     }
     
     public String getName() {
         
-        return (String) get("name");
+        return name;
         
     }
 
     public Timestamp getOrderdate() {
         return orderdate;
     }
-
+    
     public void setOrderdate(Timestamp orderdate) {
         this.orderdate = orderdate;
     }
@@ -97,7 +100,7 @@ public final class Order extends HashMap<String, Object> {
         return productionOrder;
     }
 
-    public void setProductionOrder(boolean productionOrder) {
+    public void setProductionOrder(boolean productionOrder) {   
         this.productionOrder = productionOrder;
     }
     
@@ -105,6 +108,14 @@ public final class Order extends HashMap<String, Object> {
         
         return relationshipUsernames;
         
+    }
+
+    public int getGksReferenceId() {
+        return gksReferenceId;
+    }
+
+    public void setGksReferenceId(int gksReferenceId) {
+        this.gksReferenceId = gksReferenceId;
     }
     
     public void putOrderUserRelationship(OrderUserRelationship orderUserRelationship) {
@@ -155,14 +166,16 @@ public final class Order extends HashMap<String, Object> {
     }
     
     public HashMap<String, String> toMap(Locale locale) {
-        
+
         HashMap<String, String> map = new HashMap<String, String>();
         
-        map.put("updated", dateUtility.getRelativeDateTimeString(updated, locale));
-        map.put("timestamp", String.valueOf(updated.getTime()));
+        map.put("_updated", dateUtility.getRelativeDateTimeString(updated, locale));
+        map.put("_timestamp", String.valueOf(updated.getTime()));
+        map.put("_name", name);
+        map.put("_ordernumber", String.valueOf(ordernumber));
         
         for (Entry<String, Object> entry : this.entrySet()) {
-            
+
             map.put(entry.getKey(), entry.getValue().toString());
             
         }

@@ -5,12 +5,12 @@ import com.imprima.level9.AddOrderMessage;
 import com.imprima.level9.OrderRemovalMessage;
 import com.imprima.level9.OrderUpdateMessage;
 import com.imprima.level9.UserMessage;
+import com.imprima.util.StringUtility;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,6 +35,8 @@ public class GKSSynchronizationTask extends TimerTask {
     private HashMap<Integer, String[]> clientIdMap;
     private ResourceBundle orderfields = ResourceBundle.getBundle("orderfields");
     private ProductionPlanUtility productionPlanUtility = ProductionPlanUtility.getInstance();
+    private int lowestGKSOrderId = 0;
+    private int highestGKSOrderId = 0;
 
     @Override
     public void run() {
@@ -47,9 +49,9 @@ public class GKSSynchronizationTask extends TimerTask {
 
     }
 
-    private Collection<Order> fetchActiveOrders() {
+    private HashMap<Integer, Order> fetchActiveOrders() {
 
-        ArrayList<Order> retval = new ArrayList<Order>();
+        HashMap<Integer, Order> retval = new HashMap<Integer, Order>();
         Connection connection = null;
         ResultSet resultSet = null;
 
@@ -58,14 +60,16 @@ public class GKSSynchronizationTask extends TimerTask {
             connection = DBConnectionUtility.getGksConnection();
 
             resultSet = connection.prepareStatement("SELECT DISTINCT "
+                    + "oo.ID id, "
                     + "oo.iNummer ordernumber, oo.cBenämning name, oo.rFöretagID client_id, "
                     + "oo.rPersonalIDSäljare salesperson_id, oo.rPersonalIDHandläggare projectmanager_id, "
-                    + "oo.dSenastUppdaterad updated, oo.dLeveransdatumUtlovad, "
+                    + "oo.dSenastUppdaterad updated, "
                     + "oo.dDatum orderdate "
                     + "FROM Gks.dbo.OffertOrder oo WHERE "
                     + "(oo.iNummer > 200000 OR oo.iNummer < 100000) "
                     + "AND oo.iTyp != 21 AND oo.dFaktureradDatum IS NULL AND "
-                    + "oo.dLeveransdatumUtlovad > DATEADD(month, -1, GETDATE())").executeQuery();
+                    + "oo.dLeveransdatumUtlovad > DATEADD(month, -1, GETDATE()) "
+                    + "ORDER BY oo.ID").executeQuery();
 
             while (resultSet.next()) {
 
@@ -74,6 +78,20 @@ public class GKSSynchronizationTask extends TimerTask {
                         resultSet.getTimestamp("updated"),
                         resultSet.getInt("ordernumber") > 200000,
                         resultSet.getTimestamp("orderdate"));
+
+                order.setGksReferenceId(resultSet.getInt("id"));
+
+                if (lowestGKSOrderId == 0) {
+
+                    lowestGKSOrderId = resultSet.getInt("id");
+
+                }
+
+                if (resultSet.getInt("id") > highestGKSOrderId) {
+
+                    highestGKSOrderId = resultSet.getInt("id");
+
+                }
 
                 String[] salesData = getUserDataById(resultSet.getInt("salesperson_id"));
                 String[] projectmanagerData = getUserDataById(resultSet.getInt("projectmanager_id"));
@@ -100,10 +118,9 @@ public class GKSSynchronizationTask extends TimerTask {
                             OrderUserRelationship.CLIENT));
                 }
 
-                retval.add(order);
+                retval.put(resultSet.getInt("id"), order);
 
             }
-
 
         } catch (Exception ex) {
 
@@ -214,7 +231,7 @@ public class GKSSynchronizationTask extends TimerTask {
             productionTimes = fetchProductionTimes(connection);
 
             while (resultSet.next()) {
-                
+
                 if (productionDatastore.containsOrder(resultSet.getInt("ordernumber"))) {
 
                     if (productionPlanUtility.timeIsValid(resultSet.getTimestamp("deliverydate"))
@@ -244,7 +261,8 @@ public class GKSSynchronizationTask extends TimerTask {
 
                         }
 
-                        ProductionStep productionStep = new ProductionStep(resultSet.getInt("state"),
+                        ProductionStep productionStep = new ProductionStep(
+                                resultSet.getInt("state"),
                                 resultSet.getString("details"),
                                 resultSet.getString("queue"),
                                 resultSet.getInt("queueid"));
@@ -487,9 +505,10 @@ public class GKSSynchronizationTask extends TimerTask {
 
     }
 
-    private void putOrders(Collection<Order> orderList) {
+    private void putOrders(HashMap<Integer, Order> orderMap) {
 
-        Connection connection = null;
+        Connection cacheDBConnection = null;
+        Connection gksConnection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         HashMap<Integer, Order> cachedOrderMap = cacheDBUtility.fetchOrderMap();
@@ -497,13 +516,60 @@ public class GKSSynchronizationTask extends TimerTask {
 
         try {
 
-            connection = DBConnectionUtility.getCacheDBConnection();
+            cacheDBConnection = DBConnectionUtility.getCacheDBConnection();
+            gksConnection = DBConnectionUtility.getGksConnection();
+
+            preparedStatement = gksConnection.prepareStatement("SELECT "
+                    + "sr.rOffertOrderID id,"
+                    + "sr.cKolumn1 parameter, "
+                    + "sr.cKolumn2 + ' ' + sr.cKolumn3 value "
+                    + "FROM Gks.dbo.SpecifikationRad sr "
+                    + "WHERE sr.rOffertOrderID >= ? "
+                    + "AND sr.rOffertOrderID <= ? ORDER BY "
+                    + "sr.iRadnummer ASC");
+
+            preparedStatement.setInt(1, lowestGKSOrderId);
+            preparedStatement.setInt(2, highestGKSOrderId);
+
+            resultSet = preparedStatement.executeQuery();
+
+            int latestId = 0;
+            int emptyParameterFillCount = 1;
+            
+            while (resultSet.next()) {
+
+                if (orderMap.get(resultSet.getInt("id")) != null) {
+
+                    String parameter = resultSet.getString("parameter").trim();
+                    
+                    if (parameter.length() == 0) {
+                        
+                        parameter = StringUtility.repeat(" ", emptyParameterFillCount);
+                        
+                    }
+                    
+                    orderMap.get(resultSet.getInt("id")).put(parameter, resultSet.getString("value").trim());
+
+                    if (latestId == resultSet.getInt("id")) {
+                        
+                        emptyParameterFillCount++;
+                        
+                    } else {
+                        
+                        latestId = resultSet.getInt("id");
+                        emptyParameterFillCount = 1;
+                        
+                    }
+                    
+                }
+
+            }
 
             StringBuilder purgeOrdersStatement = new StringBuilder();
 
             boolean keepMultiple = false;
 
-            for (Order order : orderList) {
+            for (Order order : orderMap.values()) {
 
                 if (keepMultiple) {
 
@@ -519,7 +585,7 @@ public class GKSSynchronizationTask extends TimerTask {
 
                 if (cachedOrder == null) {
 
-                    addOrder(order, connection);
+                    addOrder(order, cacheDBConnection);
 
                     Logger.getLogger(ProductionDatastore.class.getName()).log(Level.INFO, "Added order {0}", order.getOrdernumber().toString());
 
@@ -560,7 +626,7 @@ public class GKSSynchronizationTask extends TimerTask {
 
                         }
 
-                        preparedStatement = connection.prepareStatement("UPDATE basic_order_data SET name = ?, "
+                        preparedStatement = cacheDBConnection.prepareStatement("UPDATE basic_order_data SET name = ?, "
                                 + "updated = ? WHERE ordernumber = ? AND updated < ?");
 
                         preparedStatement.setString(1, order.getName());
@@ -578,12 +644,12 @@ public class GKSSynchronizationTask extends TimerTask {
 
                                 if (difference.getOldValue() == null) {
 
-                                    preparedStatement = connection.prepareStatement("INSERT INTO "
+                                    preparedStatement = cacheDBConnection.prepareStatement("INSERT INTO "
                                             + "order_user_relationship(username, fullname, ordernumber, relationship) VALUES(?,?,?,?)");
 
                                 } else {
 
-                                    preparedStatement = connection.prepareStatement("UPDATE order_user_relationship "
+                                    preparedStatement = cacheDBConnection.prepareStatement("UPDATE order_user_relationship "
                                             + "SET username = ?, "
                                             + "fullname = ? "
                                             + "WHERE ordernumber = ? AND relationship = ?");
@@ -669,7 +735,7 @@ public class GKSSynchronizationTask extends TimerTask {
 
             if (purgeOrdersStatement.length() > 0) {
 
-                resultSet = connection.createStatement().executeQuery("SELECT ordernumber "
+                resultSet = cacheDBConnection.createStatement().executeQuery("SELECT ordernumber "
                         + "FROM basic_order_data WHERE "
                         + purgeOrdersStatement.toString());
 
@@ -679,10 +745,10 @@ public class GKSSynchronizationTask extends TimerTask {
 
                 }
 
-                connection.createStatement().executeUpdate("DELETE FROM "
+                cacheDBConnection.createStatement().executeUpdate("DELETE FROM "
                         + "order_user_relationship WHERE " + purgeOrdersStatement.toString());
 
-                cacheDirty = cacheDirty || connection.createStatement().executeUpdate("DELETE FROM basic_order_data WHERE "
+                cacheDirty = cacheDirty || cacheDBConnection.createStatement().executeUpdate("DELETE FROM basic_order_data WHERE "
                         + purgeOrdersStatement.toString()) > 0;
 
             }
@@ -710,12 +776,23 @@ public class GKSSynchronizationTask extends TimerTask {
                 }
             }
 
-            if (connection != null) {
+            if (cacheDBConnection != null) {
                 try {
-                    if (!connection.isClosed()) {
-                        connection.close();
+                    if (!cacheDBConnection.isClosed()) {
+                        cacheDBConnection.close();
                     }
-                    connection = null;
+                    cacheDBConnection = null;
+                } catch (SQLException ex) {
+                    Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            if (gksConnection != null) {
+                try {
+                    if (!gksConnection.isClosed()) {
+                        gksConnection.close();
+                    }
+                    gksConnection = null;
                 } catch (SQLException ex) {
                     Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -728,30 +805,54 @@ public class GKSSynchronizationTask extends TimerTask {
     private void addOrder(Order order, Connection connection) throws SQLException {
 
         PreparedStatement preparedStatement = connection.prepareStatement("INSERT INTO "
-                + "basic_order_data(name, ordernumber, updated, productionorder, orderdate) VALUES(?,?,?,?,?)");
+                + "basic_order_data(name, ordernumber, updated, productionorder, orderdate, gksreferenceid) "
+                + "VALUES(?,?,?,?,?,?)",
+                PreparedStatement.RETURN_GENERATED_KEYS);
 
         preparedStatement.setString(1, order.getName());
         preparedStatement.setInt(2, order.getOrdernumber());
         preparedStatement.setTimestamp(3, order.getUpdated());
         preparedStatement.setBoolean(4, order.isProductionOrder());
         preparedStatement.setTimestamp(5, order.getOrderdate());
+        preparedStatement.setInt(6, order.getGksReferenceId());
 
         preparedStatement.executeUpdate();
 
-        for (OrderUserRelationship orderUserRelationship : order.getRelationships().values()) {
+        ResultSet resultSet = preparedStatement.getGeneratedKeys();
+
+        if (resultSet.next()) {
 
             preparedStatement = connection.prepareStatement("INSERT INTO "
-                    + "order_user_relationship(ordernumber, username, fullname, relationship) VALUES(?,?,?,?)");
+                        + "additional_order_data(basic_order_data_id, key, value) "
+                        + "VALUES(?,?,?)");
+            
+            for (String key : order.keySet()) {
+            
+                preparedStatement.setInt(1, resultSet.getInt(1));
+                preparedStatement.setString(2, key);
+                preparedStatement.setString(3, (String) order.get(key));
+                
+                preparedStatement.executeUpdate();
+                
+            }
+            
+            for (OrderUserRelationship orderUserRelationship : order.getRelationships().values()) {
 
-            preparedStatement.setInt(1, order.getOrdernumber());
-            preparedStatement.setString(2, orderUserRelationship.getUsername());
-            preparedStatement.setString(3, orderUserRelationship.getFullname());
-            preparedStatement.setInt(4, orderUserRelationship.getRelationship());
+                preparedStatement = connection.prepareStatement("INSERT INTO "
+                        + "order_user_relationship(ordernumber, username, fullname, relationship) "
+                        + "VALUES(?,?,?,?)");
 
-            preparedStatement.executeUpdate();
+                preparedStatement.setInt(1, order.getOrdernumber());
+                preparedStatement.setString(2, orderUserRelationship.getUsername());
+                preparedStatement.setString(3, orderUserRelationship.getFullname());
+                preparedStatement.setInt(4, orderUserRelationship.getRelationship());
 
-            userSessionController.publishMessageToUser(new AddOrderMessage(order), orderUserRelationship.getUsername());
-            userSessionController.publishMessageToUser(new UserMessage("Ny order: " + order.getOrdernumber() + " " + order.getName()), orderUserRelationship.getUsername());
+                preparedStatement.executeUpdate();
+
+                userSessionController.publishMessageToUser(new AddOrderMessage(order), orderUserRelationship.getUsername());
+                userSessionController.publishMessageToUser(new UserMessage("Ny order: " + order.getOrdernumber() + " " + order.getName()), orderUserRelationship.getUsername());
+
+            }
 
         }
 

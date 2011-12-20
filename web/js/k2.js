@@ -40,11 +40,11 @@ var handleKeyEvent = function(event) {
     switch (event.keyCode) {
                         
         case 38:
-            showOrderDetails($('.order-list-entry.ui-state-active').prev().children('.ordernumber').html());
+            showOrderDetails($('.order-list-entry.ui-state-active').prev().children('._ordernumber').html());
             break;
                         
         case 40:
-            showOrderDetails($('.order-list-entry.ui-state-active').next().children('.ordernumber').html());
+            showOrderDetails($('.order-list-entry.ui-state-active').next().children('._ordernumber').html());
             break;
                         
     }
@@ -135,7 +135,7 @@ var showOrderInfo = function(ordernumber, target) {
         var orderdetailsHeader = $('<div>').addClass('header');
         
         var ordername = $('<h1>');
-        ordername.append(orderData.ordernumber + ' ' + orderData.name);
+        ordername.append(orderData._ordernumber + ' ' + orderData._name);
         ordername.addClass('ordername');
         
         orderdetailsHeader.append(ordername);
@@ -143,21 +143,27 @@ var showOrderInfo = function(ordernumber, target) {
         var updated = $('<div>');
         var labelUpdated = $('<label>').html('Senast uppdaterad');
         
-        updated.append(labelUpdated).append(orderData.updated);
+        var orderrows = $('<div>');
+        
+        $.each(orderData, function(key, value) {
+
+        });
+        
+        updated.append(labelUpdated).append(orderData._updated);
                 
         target.html(orderdetailsHeader);
         target.append(updated);
                           
-        if (hasProductionPlan(orderData.ordernumber)) {
+        if (hasProductionPlan(orderData._ordernumber)) {
             
             var ganttchartheader = $('<h2>');
             ganttchartheader.html('Produktionsplan');
         
-            var gantt = $('<div id="gantt-' + orderData.ordernumber + '">');
+            var gantt = $('<div id="gantt-' + orderData._ordernumber + '">');
             gantt.addClass('ganttchart');
         
             gantt.hegantt({
-                source: 'servlet/productionplan?action=get_productionplan_by_ordernumber&ordernumber=' + orderData.ordernumber,
+                source: 'servlet/productionplan?action=get_productionplan_by_ordernumber&ordernumber=' + orderData._ordernumber,
                 callback: adjustViewPort
             });
             
@@ -167,7 +173,7 @@ var showOrderInfo = function(ordernumber, target) {
             
         }
                   
-        makeFileuploadDropZone(target, orderData.ordernumber);        
+        makeFileuploadDropZone(target, orderData._ordernumber);        
                 
     });
             
@@ -178,51 +184,51 @@ var generateOrderListEntry = function(orderData) {
     var orderListEntry = $('<div>');
     orderListEntry.attr("style", "display: none");
     orderListEntry.addClass('order-list-entry');
-    orderListEntry.attr('data-id', 'id-' + orderData.ordernumber);
-    orderListEntry.attr('id', 'order-list-entry-' + orderData.ordernumber);
+    orderListEntry.attr('data-id', 'id-' + orderData._ordernumber);
+    orderListEntry.attr('id', 'order-list-entry-' + orderData._ordernumber);
     
     var timestamp = $('<div>');
-    timestamp.html(orderData.timestamp);
-    timestamp.addClass('timestamp');
+    timestamp.html(orderData._timestamp);
+    timestamp.addClass('_timestamp');
     
     var ordernumber = $('<div>');
-    ordernumber.html(orderData.ordernumber);
-    ordernumber.addClass('ordernumber');
+    ordernumber.html(orderData._ordernumber);
+    ordernumber.addClass('_ordernumber');
                 
     var name = $('<div>');
         
-    name.html(truncateString(orderData.name, 33, 35));
-    name.addClass('name');
+    name.html(truncateString(orderData._name, 33, 35));
+    name.addClass('_name');
     
-    orderListEntry.attr('title', orderData.name);
+    orderListEntry.attr('title', orderData._name);
     
     var updated = $('<div>');
-    updated.html(orderData.updated);
-    updated.addClass('updated');
+    updated.html(orderData._updated);
+    updated.addClass('_updated');
     
     var sales_fullname_label = $('<label>');
     sales_fullname_label.html('Säljare:');
     
     var sales_fullname = $('<span>');
-    sales_fullname.html(orderData.sales_fullname);
+    sales_fullname.html(orderData._sales_fullname);
     sales_fullname.addClass('sales_fullname');
     
     var projectmanager_fullname_label = $('<label>');
     projectmanager_fullname_label.html('Projektledare:');
     
     var projectmanager_fullname = $('<span>');
-    projectmanager_fullname.html(orderData.projectmanager_fullname);
+    projectmanager_fullname.html(orderData._projectmanager_fullname);
     projectmanager_fullname.addClass('projectmanager_fullname');
     
     var client_fullname_label = $('<label>');
     client_fullname_label.html('Kund:');
     
     var client_fullname = $('<span>');
-    client_fullname.html(orderData.client_fullname);
+    client_fullname.html(orderData._client_fullname);
     client_fullname.addClass('client_fullname');
     
     var uploaded_filename = $('<span>');
-    uploaded_filename.attr('id', 'uploaded-filename' + orderData.ordernumber);
+    uploaded_filename.attr('id', 'uploaded-filename' + orderData._ordernumber);
     
     orderListEntry.append(timestamp)
     .append(ordernumber)
@@ -239,11 +245,11 @@ var generateOrderListEntry = function(orderData) {
     .append(projectmanager_fullname_label)
     .append(projectmanager_fullname);
 
-    makeFileuploadDropZone(orderListEntry, orderData.ordernumber);
+    makeFileuploadDropZone(orderListEntry, orderData._ordernumber);
     
     orderListEntry.click(function() {
         
-        showOrderDetails(orderData.ordernumber);
+        showOrderDetails(orderData._ordernumber);
         
     });
     
