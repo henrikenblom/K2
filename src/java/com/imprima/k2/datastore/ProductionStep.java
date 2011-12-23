@@ -240,9 +240,7 @@ public final class ProductionStep implements Comparable<ProductionStep> {
 
         int comparedOrdering = productionStep.getOrdering();
 
-        if (this.getOrdering() > comparedOrdering) {
-            return 1;
-        } else if (this.getOrdering() < comparedOrdering) {
+        if (this.getOrdering() < comparedOrdering) {
             return -1;
         } else {
             return 1;

@@ -513,6 +513,7 @@ public class GKSSynchronizationTask extends TimerTask {
         ResultSet resultSet = null;
         HashMap<Integer, Order> cachedOrderMap = cacheDBUtility.fetchOrderMap();
         boolean cacheDirty = false;
+        int lastKnownOrderNumber = -1;
 
         try {
 
@@ -520,9 +521,11 @@ public class GKSSynchronizationTask extends TimerTask {
             gksConnection = DBConnectionUtility.getGksConnection();
 
             preparedStatement = gksConnection.prepareStatement("SELECT "
-                    + "sr.rOffertOrderID id,"
-                    + "sr.cKolumn1 parameter, "
-                    + "sr.cKolumn2 + ' ' + sr.cKolumn3 value "
+                    + "sr.rOffertOrderID id, "
+                    + "sr.cKolumn1 column1, "
+                    + "sr.cKolumn2 column2, "
+                    + "sr.cKolumn3 column3, "
+                    + "sr.iRadnummer rownumber "
                     + "FROM Gks.dbo.SpecifikationRad sr "
                     + "WHERE sr.rOffertOrderID >= ? "
                     + "AND sr.rOffertOrderID <= ? ORDER BY "
@@ -533,34 +536,16 @@ public class GKSSynchronizationTask extends TimerTask {
 
             resultSet = preparedStatement.executeQuery();
 
-            int latestId = 0;
-            int emptyParameterFillCount = 1;
-            
             while (resultSet.next()) {
 
                 if (orderMap.get(resultSet.getInt("id")) != null) {
 
-                    String parameter = resultSet.getString("parameter").trim();
-                    
-                    if (parameter.length() == 0) {
-                        
-                        parameter = StringUtility.repeat(" ", emptyParameterFillCount);
-                        
-                    }
-                    
-                    orderMap.get(resultSet.getInt("id")).put(parameter, resultSet.getString("value").trim());
+                    orderMap.get(resultSet.getInt("id")).addOrderDataEntry(new OrderDataEntry(
+                            resultSet.getString("column1").trim(),
+                            resultSet.getString("column2").trim(),
+                            resultSet.getString("column3").trim(),
+                            resultSet.getInt("rownumber")));
 
-                    if (latestId == resultSet.getInt("id")) {
-                        
-                        emptyParameterFillCount++;
-                        
-                    } else {
-                        
-                        latestId = resultSet.getInt("id");
-                        emptyParameterFillCount = 1;
-                        
-                    }
-                    
                 }
 
             }
@@ -570,6 +555,8 @@ public class GKSSynchronizationTask extends TimerTask {
             boolean keepMultiple = false;
 
             for (Order order : orderMap.values()) {
+
+                lastKnownOrderNumber = order.getOrdernumber();
 
                 if (keepMultiple) {
 
@@ -762,6 +749,7 @@ public class GKSSynchronizationTask extends TimerTask {
         } catch (Exception ex) {
 
             Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ProductionDatastore.class.getName()).log(Level.SEVERE, null, "Last known order number: " + lastKnownOrderNumber);
 
         } finally {
 
@@ -823,19 +811,20 @@ public class GKSSynchronizationTask extends TimerTask {
         if (resultSet.next()) {
 
             preparedStatement = connection.prepareStatement("INSERT INTO "
-                        + "additional_order_data(basic_order_data_id, key, value) "
-                        + "VALUES(?,?,?)");
-            
-            for (String key : order.keySet()) {
-            
+                    + "additional_order_data(basic_order_data_id, column1, column2, column3) "
+                    + "VALUES(?,?,?,?)");
+
+            for (OrderDataEntry orderDataEntry : order.getOrderDataEntrys()) {
+
                 preparedStatement.setInt(1, resultSet.getInt(1));
-                preparedStatement.setString(2, key);
-                preparedStatement.setString(3, (String) order.get(key));
-                
+                preparedStatement.setString(2, orderDataEntry.getColumn1());
+                preparedStatement.setString(3, orderDataEntry.getColumn2());
+                preparedStatement.setString(4, orderDataEntry.getColumn3());
+
                 preparedStatement.executeUpdate();
-                
+
             }
-            
+
             for (OrderUserRelationship orderUserRelationship : order.getRelationships().values()) {
 
                 preparedStatement = connection.prepareStatement("INSERT INTO "

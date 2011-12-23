@@ -214,14 +214,20 @@ public class CacheDBUtility {
     }
     
     private void addParameters(Order order, Connection connection) throws SQLException {
-        
+
         ResultSet resultSet = connection.createStatement().executeQuery("SELECT "
-                + "key, value FROM additional_order_data WHERE basic_order_data_id = "
-                + order.getCacheDBId());
-        
+                + "id, column1, column2, column3 FROM additional_order_data WHERE basic_order_data_id = "
+                + order.getCacheDBId()
+                + " ORDER BY id");
+                
         while (resultSet.next()) {
             
-            order.put(resultSet.getString("key"), resultSet.getString("value"));
+            order.addOrderDataEntry(
+                    new OrderDataEntry(
+                            resultSet.getString("column1"), 
+                            resultSet.getString("column2"), 
+                            resultSet.getString("column3"),
+                            resultSet.getInt("id")));
             
         }
         
@@ -373,19 +379,9 @@ public class CacheDBUtility {
                         + "additional_order_data("
                         + "id INTEGER IDENTITY PRIMARY KEY, "
                         + "basic_order_data_id INTEGER, "
-                        + "key VARCHAR(100), "
-                        + "value VARCHAR(200))");
-
-            } catch (SQLSyntaxErrorException ex) {
-
-                Logger.getLogger(ProductionDatastore.class.getName()).log(Level.INFO, ex.getMessage());
-
-            }
-            
-            try {
-
-                connection.createStatement().executeUpdate("CREATE INDEX "
-                        + "additional_order_data_index ON additional_order_data(key)");
+                        + "column1 VARCHAR(100), "
+                        + "column2 VARCHAR(100), "
+                        + "column3 VARCHAR(100))");
 
             } catch (SQLSyntaxErrorException ex) {
 

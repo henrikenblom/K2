@@ -9,7 +9,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map.Entry;
 
 /**
  *
@@ -28,6 +27,7 @@ public final class Order extends HashMap<String, Object> {
     private int gksReferenceId;
     private int ordernumber;
     private String name = "";
+    private ArrayList<OrderDataEntry> orderDataEntrys = new ArrayList<OrderDataEntry>();
     
     public Order(Integer ordernumber, String name) {
 
@@ -55,6 +55,18 @@ public final class Order extends HashMap<String, Object> {
         
         this(ordernumber, name, updated, productionOrder, orderdate);
         setCacheDBId(cacheDBId);
+        
+    }
+    
+    public void addOrderDataEntry(OrderDataEntry orderDataEntry) {
+        
+        orderDataEntrys.add(orderDataEntry);
+        
+    }
+    
+    public ArrayList<OrderDataEntry> getOrderDataEntrys() {
+                
+        return orderDataEntrys;
         
     }
     
@@ -174,9 +186,9 @@ public final class Order extends HashMap<String, Object> {
         map.put("_name", name);
         map.put("_ordernumber", String.valueOf(ordernumber));
         
-        for (Entry<String, Object> entry : this.entrySet()) {
-
-            map.put(entry.getKey(), entry.getValue().toString());
+        for (OrderDataEntry entry :  getOrderDataEntrys()) {
+            
+            map.put("orderdataentry_" + entry.getId(), entry.toString());
             
         }
                 

@@ -141,18 +141,56 @@ var showOrderInfo = function(ordernumber, target) {
         orderdetailsHeader.append(ordername);
         
         var updated = $('<div>');
-        var labelUpdated = $('<label>').html('Senast uppdaterad');
+        var labelUpdated = $('<label>').html('Senast uppdaterad:');
         
-        var orderrows = $('<div>');
-        
-        $.each(orderData, function(key, value) {
+        var orderrows = $('<div id="orderrows">');
 
+        var keys = [];
+
+        $.each(orderData, function(key, value) {
+            
+            if (key.substring(0, 15) == "orderdataentry_") {
+        
+                keys.push(key);
+                
+            }
+
+        });
+        
+        keys.sort();
+        
+        keys.forEach(function(key) {
+            
+            var value = orderData[key];
+
+            var orderrow = $('<div class="orderrow">');
+                
+            $.each(value.split('\t'), function(index, value) {
+                    
+                var column = $('<div class="orderrowcell">');
+                
+                if (index == 0) {
+                    
+                    column.addClass('orderrowheader');
+                    
+                }
+                
+                column.append(value).append('&nbsp;\n\n');
+                    
+                orderrow.append(column);
+                    
+            });
+                
+            orderrows.append(orderrow);
+                
+            
         });
         
         updated.append(labelUpdated).append(orderData._updated);
                 
         target.html(orderdetailsHeader);
         target.append(updated);
+        target.append(orderrows);
                           
         if (hasProductionPlan(orderData._ordernumber)) {
             

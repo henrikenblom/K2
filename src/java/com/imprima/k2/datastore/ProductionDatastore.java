@@ -310,12 +310,14 @@ public final class ProductionDatastore {
 
                     }
                     
-                    preparedStatement = cacheConnection.prepareStatement("SELECT parameter, "
-                            + "key FROM additional_order_data WHERE basic_order_data_id = ?");
+                    preparedStatement = cacheConnection.prepareStatement("SELECT column1, "
+                            + "column2, column3 FROM additional_order_data WHERE basic_order_data_id = ?");
                     
                     preparedStatement.setInt(1, id);
                     
                     resultSet = preparedStatement.executeQuery();
+                    
+                    OrderDataEntry orderDataEntry = new OrderDataEntry();
                     
                     while (resultSet.next()) {
                         

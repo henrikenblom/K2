@@ -228,9 +228,9 @@ li label {
     right: 6px;
 }
 
-.order-details-entry label {
+/*.order-details-entry label {
     display: block;
-}
+}*/
 
 .order-details-entry .header {
     display: block;
@@ -266,4 +266,23 @@ li label {
 }
 
 .ganttchart {
+}
+
+.orderrow {
+    display: table-row;
+}
+
+.orderrowcell {
+    display: table-cell;
+    min-width: 100px;
+}
+
+.orderrowheader {
+    font-weight: normal;
+}
+
+#orderrows {
+    display: table;
+    padding-top: 20px;
+    padding-bottom: 40px;
 }
