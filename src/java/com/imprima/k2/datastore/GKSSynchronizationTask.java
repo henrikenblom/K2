@@ -5,7 +5,6 @@ import com.imprima.level9.AddOrderMessage;
 import com.imprima.level9.OrderRemovalMessage;
 import com.imprima.level9.OrderUpdateMessage;
 import com.imprima.level9.UserMessage;
-import com.imprima.util.StringUtility;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

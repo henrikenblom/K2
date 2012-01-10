@@ -131,88 +131,94 @@ var showOrderInfo = function(ordernumber, target) {
         ordernumber: ordernumber
         
     }, function(orderData) {
+        
+        try {
             
-        var orderdetailsHeader = $('<div>').addClass('header');
+            var orderdetailsHeader = $('<div>').addClass('header');
         
-        var ordername = $('<h1>');
-        ordername.append(orderData._ordernumber + ' ' + orderData._name);
-        ordername.addClass('ordername');
+            var ordername = $('<h1>');
+            ordername.append(orderData._ordernumber + ' ' + orderData._name);
+            ordername.addClass('ordername');
         
-        orderdetailsHeader.append(ordername);
+            orderdetailsHeader.append(ordername);
         
-        var updated = $('<div>');
-        var labelUpdated = $('<label>').html('Senast uppdaterad:');
+            var updated = $('<div>');
+            var labelUpdated = $('<label>').html('Senast uppdaterad:');
         
-        var orderrows = $('<div id="orderrows">');
+            var orderrows = $('<div id="orderrows">');
 
-        var keys = [];
+            var keys = [];
 
-        $.each(orderData, function(key, value) {
+            $.each(orderData, function(key, value) {
             
-            if (key.substring(0, 15) == "orderdataentry_") {
+                if (key.substring(0, 15) == "orderdataentry_") {
         
-                keys.push(key);
+                    keys.push(key);
                 
-            }
-
-        });
-        
-        keys.sort();
-        
-        keys.forEach(function(key) {
-            
-            var value = orderData[key];
-
-            var orderrow = $('<div class="orderrow">');
-                
-            $.each(value.split('\t'), function(index, value) {
-                    
-                var column = $('<div class="orderrowcell">');
-                
-                if (index == 0) {
-                    
-                    column.addClass('orderrowheader');
-                    
                 }
-                
-                column.append(value).append('&nbsp;\n\n');
-                    
-                orderrow.append(column);
-                    
+
             });
+        
+            keys.sort();
+        
+            keys.forEach(function(key) {
+            
+                var value = orderData[key];
+
+                var orderrow = $('<div class="orderrow">');
                 
-            orderrows.append(orderrow);
+                $.each(value.split('\t'), function(index, value) {
+                    
+                    var column = $('<div class="orderrowcell">');
+                
+                    if (index == 0) {
+                    
+                        column.addClass('orderrowheader');
+                    
+                    }
+                
+                    column.append(value).append('&nbsp;\n\n');
+                    
+                    orderrow.append(column);
+                    
+                });
+                
+                orderrows.append(orderrow);
                 
             
-        });
+            });
         
-        updated.append(labelUpdated).append(orderData._updated);
+            updated.append(labelUpdated).append(orderData._updated);
                 
-        target.html(orderdetailsHeader);
-        target.append(updated);
-        target.append(orderrows);
+            target.html(orderdetailsHeader);
+            target.append(updated);
+            target.append(orderrows);
                           
-        if (hasProductionPlan(orderData._ordernumber)) {
+            if (hasProductionPlan(orderData._ordernumber)) {
             
-            var ganttchartheader = $('<h2>');
-            ganttchartheader.html('Produktionsplan');
+                var ganttchartheader = $('<h2>');
+                ganttchartheader.html('Produktionsplan');
         
-            var gantt = $('<div id="gantt-' + orderData._ordernumber + '">');
-            gantt.addClass('ganttchart');
+                var gantt = $('<div id="gantt-' + orderData._ordernumber + '">');
+                gantt.addClass('ganttchart');
         
-            gantt.hegantt({
-                source: 'servlet/productionplan?action=get_productionplan_by_ordernumber&ordernumber=' + orderData._ordernumber,
-                callback: adjustViewPort
-            });
+                gantt.hegantt({
+                    source: 'servlet/productionplan?action=get_productionplan_by_ordernumber&ordernumber=' + orderData._ordernumber,
+                    callback: adjustViewPort
+                });
             
-            target
-            .append(ganttchartheader)
-            .append(gantt); 
+                target
+                .append(ganttchartheader)
+                .append(gantt); 
+            
+            }
+                  
+            makeFileuploadDropZone(target, orderData._ordernumber);        
+                
+        } catch (ex) {
             
         }
-                  
-        makeFileuploadDropZone(target, orderData._ordernumber);        
-                
+        
     });
             
 }
@@ -319,40 +325,44 @@ var showOrderDetails = function(ordernumber) {
     
     $('.order-list-entry').removeClass('ui-state-active');
     
-    $('#order-list-entry-' + ordernumber).addClass('ui-state-active');
+    if ($('#order-list-entry-' + ordernumber).length > 0) {
+    
+        $('#order-list-entry-' + ordernumber).addClass('ui-state-active');
         
-    if (!isScrolledIntoView($('#order-list-entry-' + ordernumber))) {
+        if (!isScrolledIntoView($('#order-list-entry-' + ordernumber))) {
                         
-        $('#order-list-layer').scrollTo($('#order-list-entry-' + ordernumber), effectDurationDenominator);
+            $('#order-list-layer').scrollTo($('#order-list-entry-' + ordernumber), effectDurationDenominator);
         
-    }
+        }
         
-    var orderdetails = $('<div>');
-    orderdetails.attr('style', 'display: none');
-    orderdetails.addClass('order-details-entry');
-    orderdetails.addClass('ui-widget');
-    orderdetails.attr('id', 'order-details-entry');
+        var orderdetails = $('<div>');
+        orderdetails.attr('style', 'display: none');
+        orderdetails.addClass('order-details-entry');
+        orderdetails.addClass('ui-widget');
+        orderdetails.attr('id', 'order-details-entry');
         
-    $('#content-layer').html(orderdetails);            
-    $('#content-layer').click(function() {
+        $('#content-layer').html(orderdetails);            
+        $('#content-layer').click(function() {
             
-        $('#content-layer').unbind('click');
+            $('#content-layer').unbind('click');
                 
-        closeOrderdetails(ordernumber);
+            closeOrderdetails(ordernumber);
             
-    });
+        });
         
-    orderdetails.click(function() {
+        orderdetails.click(function() {
             
-        return false;
+            return false;
             
-    });
+        });
     
-    $('#order-view-menu').fadeIn(effectDurationDenominator);
+        $('#order-view-menu').fadeIn(effectDurationDenominator);
     
-    setOrderDetailsView(ordernumber, orderdetails);
+        setOrderDetailsView(ordernumber, orderdetails);
     
-    orderdetails.fadeIn(effectDurationDenominator);
+        orderdetails.fadeIn(effectDurationDenominator);
+    
+    }
          
 }
 
@@ -583,13 +593,21 @@ var updateOrderdata = function(orderData) {
 }
 
 var isScrolledIntoView = function(elem) {
+
+    try {
+
+        var docViewTop = $(window).scrollTop();
+        var docViewBottom = docViewTop + $(window).height();
+
+        var elemTop = $(elem).offset().top;
+
+        var elemBottom = elemTop + 2;
     
-    var docViewTop = $(window).scrollTop();
-    var docViewBottom = docViewTop + $(window).height();
-
-    var elemTop = $(elem).offset().top;
-
-    var elemBottom = elemTop + 2;
+    } catch (ex) {
+        
+        return true;
+        
+    }
     
     return ((elemBottom >= docViewTop) && (elemTop <= docViewBottom));
     
