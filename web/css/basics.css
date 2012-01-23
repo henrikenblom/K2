@@ -192,6 +192,13 @@ li label {
     width: 200px;
 }
 
+#plugin-controls {
+    position: absolute;
+    left: 560px;
+    top: 3px;
+    height: 21px;
+}
+
 .order-list-entry {
     margin: 0;
     border-bottom: 1px solid #cccbcc;

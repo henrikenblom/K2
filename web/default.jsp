@@ -195,7 +195,7 @@
                     
                 }
                 
-                $("#orderview-info-button").button( { icons: {primary:'ui-icon-document'} } );
+                $("#orderview-info-button").button( { icons: {primary:'ui-icon-info'} } );
                 $("#orderview-planning-button").button( { icons: {primary:'ui-icon-clock'} } );
                 $("#orderview-webproof-button").button( { icons: {primary:'ui-icon-image'} } );
                 
@@ -252,6 +252,7 @@
                 <input type="radio" class="orderview-choice" name="orderview" value="information" id="orderview-info-button" checked="checked"/><label for="orderview-info-button">Information</label>
                 <input type="radio" class="orderview-choice" name="orderview" value="webproof" id="orderview-webproof-button"/><label for="orderview-webproof-button">Webbkorrektur</label>
             </div>
+            <div id="plugin-controls" class="ui-widget"></div>
             <div id="settings-menus">
                 <input type="checkbox" id="user-menu-button"><label for="user-menu-button"><%= userSession.get("fullname")%></label>
             </div>

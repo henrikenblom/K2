@@ -120,6 +120,8 @@ var adjustViewPort = function() {
     $('#content-layer').width($(window).width() - $('#order-list-layer').width());
     
     $('div.hegantt > div.fn-content > div.rightPanel').width($('#content-layer').width() - 310);
+    
+    $('#plugin-controls').width($('#order-controls').width() - 680);
 
 }
 
@@ -149,7 +151,7 @@ var showOrderInfo = function(ordernumber, target) {
 
             var keys = [];
 
-            $.each(orderData, function(key, value) {
+            $.each(orderData, function(key) {
             
                 if (key.substring(0, 15) == "orderdataentry_") {
         
@@ -241,10 +243,10 @@ var generateOrderListEntry = function(orderData) {
                 
     var name = $('<div>');
         
-    name.html(truncateString(orderData._name, 33, 35));
+    name.html(truncateString(orderData._name, 25, 30));
     name.addClass('_name');
     
-    orderListEntry.attr('title', orderData._name);
+    orderListEntry.attr('title', orderData._ordernumber + " " + orderData._name);
     
     var updated = $('<div>');
     updated.html(orderData._updated);
@@ -302,7 +304,6 @@ var generateOrderListEntry = function(orderData) {
 }
 
 var closeOrderdetails = function(ordernumber) {
-    
     
     $('#order-details-entry').fadeOut(effectDurationDenominator, function() {
                 
@@ -374,9 +375,21 @@ var setOrderDetailsView = function(ordernumber, target) {
             
         showOrderInfo(ordernumber, target);
 
+    } else if (orderview == 'webproof') {
+        
+        showWebproof(ordernumber, target);
+        
     }
 
     adjustViewPort();
+    
+}
+
+var showWebproof = function(ordernumber, target) {
+    
+    target.html("");
+    
+    addAtom(target.attr('id'), 'webproof/webproof.jsp?ordernumber=' + ordernumber);
     
 }
 
@@ -530,7 +543,7 @@ var handleLevel9Message = function(bayeuxMessage) {
         
         removeOrder(message.body);
             
-    }else if (message.type == 'addordermessage') {
+    } else if (message.type == 'addordermessage') {
         
         addOrder(message.body);
         doOrderListSort();
@@ -623,18 +636,21 @@ var updateTips = function(t) {
 }
 
 var checkLength = function(o, n, min, max) {
+    
     if ( o.val().length > max || o.val().length < min ) {
         o.addClass( "ui-state-error" );
         updateTips( n + " måste bestå av minst " +
             min + " och max " + max + " tecken." );
         o.focus();
         return false;
-    }else {
+    } else {
         return true;
     }
+    
 }
 
 var checkRegexp = function(o, regexp, n) {
+    
     if ( !( regexp.test( o.val() ) ) ) {
         o.addClass( "ui-state-error" );
         updateTips( n );
@@ -642,6 +658,7 @@ var checkRegexp = function(o, regexp, n) {
     } else {
         return true;
     }
+    
 }
 
 var addAtom = function(elementname, filename) {

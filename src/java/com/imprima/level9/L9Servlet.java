@@ -1,6 +1,5 @@
 package com.imprima.level9;
 
-import com.google.gson.Gson;
 import com.imprima.kesession.UserSessionController;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -20,9 +19,8 @@ import org.cometd.server.CometdServlet;
  * to specify SubscriptionListener.
  * 
  */
-public class L9Servlet extends CometdServlet {
+public final class L9Servlet extends CometdServlet {
     
-    private Gson gson = new Gson();
     private UserSessionController userSessionController = UserSessionController.getInstance();
     
     @Override
